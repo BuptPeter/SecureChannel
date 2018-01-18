@@ -14,6 +14,10 @@ import (
 	"fmt"
 
 	"github.com/astaxie/beego/logs"
+	"crypto/tls"
+	"log"
+	"io/ioutil"
+	"crypto/x509"
 )
 
 type ForwardService struct {
@@ -164,14 +168,21 @@ func (_self *ForwardService) StartPortForward(portForward *models.PortForward, r
 	//}
 }
 
+func (_self *ForwardService)StartListener(portForward *models.PortForward){
+
+
+}
 //
 // sourcePort 源地址和端口，例如：0.0.0.0:8700，本程序会新建立监听
 // targetPort 数据转发给哪个端口，例如：192.168.1.100:3306
+
 func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForward, result chan models.ResultData) {
 
 	sourcePort := fmt.Sprint(portForward.Addr, ":", portForward.Port)
 	targetPort := fmt.Sprint(portForward.TargetAddr, ":", portForward.TargetPort)
 	fType := portForward.FType
+	var localListener net.Listener
+	var targetConn net.Conn
 
 	resultData := &models.ResultData{Code: 0, Msg: ""}
 	logs.Debug("StartTcpPortForward sourcePort: ", sourcePort, " targetPort:", targetPort)
@@ -184,17 +195,53 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 		result <- *resultData
 		return
 	}
+	if fType==2{//如果是控制器端，开启TLS监听
+		var error error
+		cert, err := tls.LoadX509KeyPair("data/server.pem", "data/server.key")
+		if err != nil {
+			resultData.Code = 1
+			resultData.Msg = fmt.Sprint("配置TLS出错:",err)
+			result <- *resultData
+			return
+		}
+		certBytes, err := ioutil.ReadFile("data/client.pem")
+		if err != nil {
+			logs.Debug("Unable to read cert.pem")
+		}
+		clientCertPool := x509.NewCertPool()
+		ok := clientCertPool.AppendCertsFromPEM(certBytes)
+		if !ok {
+			logs.Debug("failed to parse root certificate")
+		}
+		config := &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    clientCertPool,
+		}
 
-	localListener, err := net.Listen("tcp", sourcePort)
+		localListener, error = tls.Listen("tcp", sourcePort, config)
+		if error != nil {
+			logs.Error("启动监听 ", sourcePort, " 出错：", error)
+			resultData.Code = 1
+			resultData.Msg = fmt.Sprint("启动监听 ", sourcePort, " 出错：", error)
+			result <- *resultData
+			return
+		}
+		defer localListener.Close()
 
-	if err != nil {
-		logs.Error("启动监听 ", sourcePort, " 出错：", err)
-		resultData.Code = 1
-		resultData.Msg = fmt.Sprint("启动监听 ", sourcePort, " 出错：", err)
-		result <- *resultData
-		return
+	}else{
+		var error error
+		localListener, error = net.Listen("tcp", sourcePort)
+
+		if error != nil {
+			logs.Error("启动监听 ", sourcePort, " 出错：", error)
+			resultData.Code = 1
+			resultData.Msg = fmt.Sprint("启动监听 ", sourcePort, " 出错：", error)
+			result <- *resultData
+			return
+		}
+		defer localListener.Close()
 	}
-
 	_self.RegistryPort(key, localListener)
 
 	result <- *resultData
@@ -213,8 +260,44 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 
 		logs.Debug("conn.RemoteAddr().String() ：", id)
 
-		//targetPort := "172.16.128.83:22"
-		targetConn, err := net.DialTimeout("tcp", targetPort, 30*time.Second)
+		if fType==1{//OVS端建立TLS连接
+			var err_dial error
+
+			cert, err := tls.LoadX509KeyPair("data/client.pem", "data/client.key")
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			certBytes, err := ioutil.ReadFile("data/client.pem")
+			if err != nil {
+				logs.Debug("Unable to read cert.pem")
+			}
+			clientCertPool := x509.NewCertPool()
+			ok := clientCertPool.AppendCertsFromPEM(certBytes)
+			if !ok {
+				logs.Debug("failed to parse root certificate")
+			}
+			conf := &tls.Config{
+				RootCAs:            clientCertPool,
+				Certificates:       []tls.Certificate{cert},
+				InsecureSkipVerify: true,
+			}
+			targetConn,err_dial = tls.Dial("tcp", targetPort, conf)
+			if err_dial != nil {
+				log.Println(err_dial)
+				return
+			}
+			defer targetConn.Close()
+		}else {
+			var err_dial error
+			targetConn, err_dial = net.DialTimeout("tcp", targetPort, 30*time.Second)
+			if err_dial != nil {
+				log.Println(err_dial)
+				return
+			}
+			defer targetConn.Close()
+
+		}
 
 		if utils.IsNotEmpty(portForward.Others) {
 			var dispatchConns []io.Writer
@@ -247,6 +330,9 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 						if err != nil {
 							logs.Error("客户端来源数据转发到目标端口异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
+							targetConn.Close()
+							sourceConn.Close()
+							break
 						}
 					}
 				}()
