@@ -117,6 +117,7 @@ func (c *ForwardCtrl) SaveForward() {
 	targetPort, _ := c.GetInt("targetPort")
 	others := c.GetString("others", "")
 	fType, _ := c.GetInt("fType")
+	test, _ := c.GetInt("Test")
 
 	if utils.IsEmpty(name) {
 		//
@@ -180,6 +181,7 @@ func (c *ForwardCtrl) SaveForward() {
 	entity.TargetPort = targetPort
 	entity.Others = others
 	entity.FType = fType
+	entity.Test = test
 
 	err := services.SysDataS.SavePortForward(entity)
 	if err == nil {
@@ -196,11 +198,16 @@ func (c *ForwardCtrl) SaveForward() {
 func (c *ForwardCtrl) OpenForward() {
 	id, _ := c.GetInt("id")
 	entity := services.SysDataS.GetPortForwardById(id)
-
 	resultChan := make(chan models.ResultData)
-	go services.ForwardS.StartPortForward(entity, resultChan)
 
-	c.Data["json"] = <-resultChan
+	if entity.Test ==0{
+		go services.ForwardS.StartPortForward(entity, resultChan)
+	}else if entity.Test ==1{
+		go services.ForwardS.StartTestPortForward(entity, resultChan)
+	}
+
+
+	c.Data["json"] = <- resultChan
 
 	c.ServeJSON()
 

@@ -24,6 +24,8 @@ type PortForward struct {
 	Others string `orm:"column(others);size(500);null"`
 	// 0:普通映射,1:加密通信（OVS端）,2:加密通信（控制器端）
 	FType int `orm:"column(fType);null"`
+	//吞吐测试标志位
+	Test int `orm:"column(Test);null"`
 }
 
 func (t *PortForward) TableName() string {

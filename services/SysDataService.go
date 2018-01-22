@@ -216,6 +216,7 @@ func (_self *SysDataService) SavePortForward(entity *models.PortForward) error {
 		update.TargetPort = entity.TargetPort
 		update.Others = entity.Others
 		update.FType = entity.FType
+		update.Test = entity.Test
 
 		_, err1 := OrmerS.Update(update)
 		return err1

@@ -25,13 +25,22 @@
     <div class="layui-form-item">
       <label class="layui-form-label">工作模式</label>
       <div class="layui-input-inline">
-        <select name="fType">
-          <option value="0" {{if eq .entity.FType 0}}selected="selected"{{end}}>透明转发</option>
-          <option value="1" {{if eq .entity.FType 1}}selected="selected"{{end}}>加密通信（OVS端）</option>
-          <option value="2" {{if eq .entity.FType 2}}selected="selected"{{end}}>加密通信（控制器端）</option>
-        </select>
+          <select name="fType">
+              <option value="0" {{if eq .entity.FType 0}}selected="selected"{{end}}>透明转发</option>
+              <option value="1" {{if eq .entity.FType 1}}selected="selected"{{end}}>加密通信（OVS端）</option>
+              <option value="2" {{if eq .entity.FType 2}}selected="selected"{{end}}>加密通信（控制器端）</option>
+          </select>
       </div>
-    </div>
+  </div>
+      <div class="layui-form-item">
+          <label class="layui-form-label">吞吐测试</label>
+          <div class="layui-input-inline">
+              <select name="Test">
+                  <option value="0" {{if eq .entity.FType 0}}selected="selected"{{end}}>否</option>
+                  <option value="1" {{if eq .entity.FType 1}}selected="selected"{{end}}>是</option>
+              </select>
+          </div>
+      </div>
     <div class="layui-form-item">
       <label class="layui-form-label">协议</label>
       <div class="layui-input-inline">

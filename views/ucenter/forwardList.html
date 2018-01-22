@@ -17,6 +17,7 @@
             <col width="120">
             <col width="150">
             <col width="50">
+              <col width="70">
             <col width="150">
             <col width="100">
             <col width="70">
@@ -32,7 +33,8 @@
               <th>本地监听地址</th>
               <th>本地监听端口</th>
               <th>转发方式</th>
-              <th>协议</th>
+                <th>协议</th>
+                <th>测试</th>
               <th>转发到地址</th>
               <th>转发到端口</th>
               <th>状态</th>
@@ -47,7 +49,7 @@
     </div>
     <div class="layui-tab-item">
       <pre class="layui-code">
-自适应的SDN网元数据保护系统 V1.0
+自适应的SDN网元数据保护系统 V1.00
 
 用于SDN场景下，Open vSwitch与控制器之间的加密数据通信和Open vSwitch本地数据防篡改。
             </pre>
@@ -72,6 +74,7 @@
     <td>{Start{ item.Port }End}</td>
     <td>{Start{ fmtFType(item.FType) }End}</td>
     <td>{Start{ item.Protocol }End}</td>
+      <td>{Start{ fmtTest(item.Test) }End}</td>
     <td>{Start{ item.TargetAddr }End}</td>
     <td>{Start{ item.TargetPort }End}</td>
     <td>{Start{ fmtStatus(item.Status) }End}</td>
@@ -165,24 +168,35 @@ function fmtAddr(val) {
 }
 
 function fmtFType(val) {
-  var html = "";
-  switch (val) {
-    case 0:
-      html = "<font color='blue'>透明转发</font>";
-      break;
-    case 1:
-      html = "<font color='orange'>加密通信（OVS端）</font>";
-      break;
-    case 2:
-      html = "<font color='red'>加密通信（控制器端）</font>";
-      break;
-    default:
-      html = "<font color='gray'>其它:" + val + "</font>";
-      break;
-  }
-  return html;
+    var html = "";
+    switch (val) {
+        case 0:
+            html = "<font color='blue'>透明转发</font>";
+            break;
+        case 1:
+            html = "<font color='orange'>加密通信（OVS端）</font>";
+            break;
+        case 2:
+            html = "<font color='red'>加密通信（控制器端）</font>";
+            break;
+        default:
+            html = "<font color='gray'>其它:" + val + "</font>";
+            break;
+    }
+    return html;
 }
-
+function fmtTest(val) {
+    var html = "";
+    switch (val) {
+        case 0:
+            html = "<font color='blue'>否</font>";
+            break;
+        case 1:
+            html = "<font color='orange'>是</font>";
+            break;
+    }
+    return html;
+}
 function fmtStatus(val) {
   var html = "";
   switch (val) {
@@ -234,7 +248,7 @@ function editForward(id) {
     layer.open({
       type: 1, //page层
       area: ['600px', '550px'],
-      title: '编辑网络转发端口',
+      title: '编辑数据转发详情',
       shade: 0.6, //遮罩透明度
       moveType: 1, //拖拽风格，0是默认，1是传统拖动
       shift: -1, //0-6的动画形式，-1不开启
