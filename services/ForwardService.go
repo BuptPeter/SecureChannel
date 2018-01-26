@@ -13,11 +13,12 @@ import (
 
 	"fmt"
 
-	"github.com/astaxie/beego/logs"
 	"crypto/tls"
-	"log"
-	"io/ioutil"
 	"crypto/x509"
+	"errors"
+	"github.com/astaxie/beego/logs"
+	"io/ioutil"
+	"log"
 )
 
 type ForwardService struct {
@@ -162,16 +163,16 @@ func (_self *ForwardService) GetKey(sourcePort, targetPort string, fType int) st
 
 func (_self *ForwardService) StartPortForward(portForward *models.PortForward, result chan models.ResultData) {
 	//if portForward.FType == 0 {
-		_self.StartPortToPortForward(portForward, result)
+	_self.StartPortToPortForward(portForward, result)
 	//} else {
 	//	_self.StartMagicForward(portForward, result)
 	//}
 }
 
-func (_self *ForwardService)StartListener(portForward *models.PortForward){
-
+func (_self *ForwardService) StartListener(portForward *models.PortForward) {
 
 }
+
 //测试吞吐量
 //接受数据包后只做加解密不转发
 func (_self *ForwardService) StartTestPortForward(portForward *models.PortForward, result chan models.ResultData) {
@@ -194,12 +195,12 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 		result <- *resultData
 		return
 	}
-	if fType==2{//如果是控制器端，开启TLS监听
+	if fType == 2 { //如果是控制器端，开启TLS监听
 		var error error
 		cert, err := tls.LoadX509KeyPair("data/server.pem", "data/server.key")
 		if err != nil {
 			resultData.Code = 1
-			resultData.Msg = fmt.Sprint("配置TLS出错:",err)
+			resultData.Msg = fmt.Sprint("配置TLS出错:", err)
 			result <- *resultData
 			return
 		}
@@ -226,9 +227,9 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 			result <- *resultData
 			return
 		}
-		defer localListener.Close()
+		//defer localListener.Close()
 
-	}else{
+	} else {
 		var error error
 		localListener, error = net.Listen("tcp", sourcePort)
 
@@ -239,7 +240,7 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 			result <- *resultData
 			return
 		}
-		defer localListener.Close()
+		//defer localListener.Close()
 	}
 	_self.RegistryPort(key, localListener)
 
@@ -258,7 +259,6 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 		_self.RegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", id), sourceConn)
 
 		logs.Debug("conn.RemoteAddr().String() ：", id)
-
 
 		//若不是不测试模式则开启监听 测试模式只接受加解密不转发所以不需要
 
@@ -289,8 +289,8 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 			if fType == 1 { //加密通信（OVS端）
 				go func() {
 					temp_reader := make([]byte, 2000)
-					n,m:=0,0
-					var start_time,stop_time time.Time
+					n, m := 0, 0
+					var start_time, stop_time time.Time
 					for {
 						n, err = sourceConn.Read(temp_reader)
 						if err != nil {
@@ -299,11 +299,11 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 							break
 						}
 						logs.Info("转发消息：", temp_reader[:n])
-						start_time =time.Now()
+						start_time = time.Now()
 						//m, err = targetConn.Write(utils.GetPlainText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k"))
 						utils.GetCipherText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k")
 						stop_time = time.Now()
-						logs.Info("AES解密数据：", n,"->",m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano() )
+						logs.Info("AES解密数据：", n, "->", m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano())
 					}
 				}()
 			}
@@ -311,8 +311,8 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 			if fType == 2 { //加密通信（RYU端）
 				go func() {
 					temp_reader := make([]byte, 2000)
-					n,m:=0,0
-					var start_time,stop_time time.Time
+					n, m := 0, 0
+					var start_time, stop_time time.Time
 					for {
 						n, err = sourceConn.Read(temp_reader)
 						if err != nil {
@@ -321,12 +321,12 @@ func (_self *ForwardService) StartTestPortForward(portForward *models.PortForwar
 							break
 						}
 						logs.Info("转发消息：", temp_reader[:n])
-						start_time =time.Now()
+						start_time = time.Now()
 
 						//m, err = targetConn.Write(utils.GetCipherText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k"))
 						utils.GetPlainText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k")
 						stop_time = time.Now()
-						logs.Info("AES加密数据：", n,"->",m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano() )
+						logs.Info("AES加密数据：", n, "->", m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano())
 					}
 				}()
 			}
@@ -362,12 +362,12 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 		result <- *resultData
 		return
 	}
-	if fType==2{//如果是控制器端，开启TLS监听
+	if fType == 2 { //如果是控制器端，开启TLS监听
 		var error error
 		cert, err := tls.LoadX509KeyPair("data/server.pem", "data/server.key")
 		if err != nil {
 			resultData.Code = 1
-			resultData.Msg = fmt.Sprint("配置TLS出错:",err)
+			resultData.Msg = fmt.Sprint("配置TLS出错:", err)
 			result <- *resultData
 			return
 		}
@@ -394,9 +394,9 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 			result <- *resultData
 			return
 		}
-		defer localListener.Close()
+		//defer localListener.Close()
 
-	}else{
+	} else {
 		var error error
 		localListener, error = net.Listen("tcp", sourcePort)
 
@@ -407,28 +407,28 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 			result <- *resultData
 			return
 		}
-		defer localListener.Close()
+		//defer localListener.Close()
 	}
 	_self.RegistryPort(key, localListener)
 
 	result <- *resultData
 
-	for {
-		logs.Debug("Ready to Accept ...")
-		sourceConn, err := localListener.Accept()
+	go func() {
+		for {
+			logs.Debug("Ready to Accept ...")
+			sourceConn, err := localListener.Accept()
 
-		if err != nil {
-			logs.Error("Accept err:", err)
-			break
-		}
+			if err != nil {
+				logs.Error("Accept err:", err)
+				break
+			}
 
-		id := sourceConn.RemoteAddr().String()
-		_self.RegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", id), sourceConn)
+			id := sourceConn.RemoteAddr().String()
+			_self.RegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", id), sourceConn)
 
-		logs.Debug("conn.RemoteAddr().String() ：", id)
+			logs.Debug("conn.RemoteAddr().String() ：", id)
 
-
-			if fType==1{//OVS端建立TLS连接
+			if fType == 1 { //OVS端建立TLS连接
 				var err_dial error
 
 				cert, err := tls.LoadX509KeyPair("data/client.pem", "data/client.key")
@@ -450,168 +450,102 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 					Certificates:       []tls.Certificate{cert},
 					InsecureSkipVerify: true,
 				}
-				targetConn,err_dial = tls.Dial("tcp", targetPort, conf)
+				targetConn, err_dial = tls.Dial("tcp", targetPort, conf)
 				if err_dial != nil {
 					log.Println(err_dial)
 					return
 				}
-				defer targetConn.Close()
-			}else {
+				//defer targetConn.Close()
+			} else {
 				var err_dial error
 				targetConn, err_dial = net.DialTimeout("tcp", targetPort, 30*time.Second)
 				if err_dial != nil {
 					log.Println(err_dial)
 					return
 				}
-				defer targetConn.Close()
+				//defer targetConn.Close()
 
 			}
 
+			if utils.IsNotEmpty(portForward.Others) {
+				var dispatchConns []io.Writer
+				dispatchConns = append(dispatchConns, targetConn)
+				//分发方式
+				dispatchTargets := utils.Split(portForward.Others, ";")
 
-		if utils.IsNotEmpty(portForward.Others) {
-			var dispatchConns []io.Writer
-			dispatchConns = append(dispatchConns, targetConn)
-			//分发方式
-			dispatchTargets := utils.Split(portForward.Others, ";")
+				for _, dispatchTarget := range dispatchTargets {
+					logs.Debug("分发到：", dispatchTarget)
+					dispatchTargetConn, err := net.DialTimeout("tcp", dispatchTarget, 30*time.Second)
+					if err == nil {
+						dispatchConns = append(dispatchConns, dispatchTargetConn)
+					}
 
-			for _, dispatchTarget := range dispatchTargets {
-				logs.Debug("分发到：", dispatchTarget)
-				dispatchTargetConn, err := net.DialTimeout("tcp", dispatchTarget, 30*time.Second)
-				if err == nil {
-					dispatchConns = append(dispatchConns, dispatchTargetConn)
 				}
 
-			}
-
-			go func() {
-				mWriter := io.MultiWriter(dispatchConns...)
-				_, err = _self.Copy(mWriter, sourceConn)
-				if err != nil {
-					logs.Error("Dispatch网络连接异常：", err)
-				}
-			}()
-
-		} else {
-			if fType == 0 { //透明转发
 				go func() {
+					mWriter := io.MultiWriter(dispatchConns...)
+					_, err = _self.Copy(mWriter, sourceConn)
+					if err != nil {
+						logs.Error("Dispatch网络连接异常：", err)
+					}
+				}()
+
+			} else {
+				if fType == 0 { //透明转发
+					go func() {
 						_, err = _self.Copy(targetConn, sourceConn)
 						if err != nil {
 							logs.Error("客户端来源数据转发到目标端口异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
-
-				}()
-			}
-			if fType == 1 { //加密通信（OVS端）
-				go func() {
-					temp_reader := make([]byte, 2000)
-					n,m:=0,0
-					var start_time,stop_time time.Time
-					for {
-						n, err = sourceConn.Read(temp_reader)
+					}()
+					go func() {
+						_, err = _self.Copy(sourceConn, targetConn)
 						if err != nil {
-							logs.Error("读取客户端来源数据异常：", err)
-							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
+							logs.Error("目标端口返回响应数据异常：", err)
+							_self.UnRegistryPort(key)
 						}
-						logs.Info("接收明文消息：", temp_reader[:n])
-						start_time =time.Now()
-						m, err = targetConn.Write(utils.GetCipherText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k"))
-						stop_time = time.Now()
-						logs.Info("转发密文消息 OVS -> SecChan ：", temp_reader[:n])
-						logs.Info("消息长度变化：", n,"->",m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano() )
-
-						if err != nil {
-							logs.Error("转发客户端来源数据异常：", err)
-							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-						}
-					}
-				}()
-			}
-			if fType == 2 { //加密通信（RYU端）
-				go func() {
-					temp_reader := make([]byte, 2000)
-					n,m:=0,0
-					var start_time,stop_time time.Time
-					for {
-						n, err = sourceConn.Read(temp_reader)
-						if err != nil {
-							logs.Error("读取客户端来源数据异常：", err)
-							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-						}
-						logs.Info("接收密文消息：", temp_reader[:n])
-						start_time =time.Now()
-						m, err = targetConn.Write(utils.GetPlainText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k"))
-						stop_time = time.Now()
-						logs.Info("转发明文消息 SecChan -> RYU：", temp_reader[:n])
-						logs.Info("消息长度变化：", n,"->",m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano() )
-						if err != nil {
-							logs.Error("转发客户端来源数据异常：", err)
-							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-						}
-					}
-				}()
-			}
-
-
-			go func() {
-				if fType == 0 {
-					_, err = _self.Copy(sourceConn, targetConn)
-					if err != nil {
-						logs.Error("目标端口返回响应数据异常：", err)
-						_self.UnRegistryPort(key)
-					}
+					}()
 				}
-				if fType == 1 { //加密通信（OVS端）
-					temp_reader := make([]byte, 2000)
-					n,m:=0,0
-					var start_time,stop_time time.Time
-					for {
-						n, err = targetConn.Read(temp_reader)
-						if err != nil {
-							logs.Error("读取客户端来源数据异常：", err)
-							_self.UnRegistryPort(key)
-						}
-						logs.Info("接收密文消息：", temp_reader[:n])
-						start_time =time.Now()
-						m, err = sourceConn.Write(utils.GetPlainText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k"))
-						stop_time = time.Now()
-						logs.Info("转发明文消息到 SecChan -> OVS：", temp_reader[:n])
-						logs.Info("消息长度变化：", n,"->",m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano() )
 
+				if fType == 1 { //加密通信（OVS端）
+					go func() {
+						_, err = _self.EncryptCopy(targetConn, sourceConn)
 						if err != nil {
-							logs.Error("转发客户端来源数据异常：", err)
-							_self.UnRegistryPort(key)
+							logs.Error("客户端来源数据转发到目标端口异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
-					}
+					}()
+					go func() {
+						_, err = _self.DecryptCopy(sourceConn, targetConn)
+						if err != nil {
+							logs.Error("客户端来源数据转发到目标端口异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
+						}
+					}()
 				}
 
 				if fType == 2 { //加密通信（RYU端）
-					temp_reader := make([]byte, 2000)
-					n,m:=0,0
-					var start_time,stop_time time.Time
-					for {
-						n, err = targetConn.Read(temp_reader)
+					go func() {
+						_, err = _self.DecryptCopy(targetConn, sourceConn)
 						if err != nil {
-							logs.Error("读取客户端来源数据异常：", err)
-							_self.UnRegistryPort(key)
+							logs.Error("客户端来源数据转发到目标端口异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
-						logs.Info("接收明文消息：", temp_reader[:n])
-						start_time =time.Now()
-						m, err = sourceConn.Write(utils.GetCipherText(temp_reader[:n], "astaxie12798akljzmknm.ahkjkljl;k"))
-						stop_time = time.Now()
-						logs.Info("转发密文消息 RYU -> SecChan：", temp_reader[:n])
-						logs.Info("消息长度变化：", n,"->",m, " ，耗时：", stop_time.UnixNano()-start_time.UnixNano() )
+					}()
 
+					go func() {
+						_, err = _self.EncryptCopy(sourceConn, targetConn)
 						if err != nil {
-							logs.Error("转发客户端来源数据异常：", err)
-							_self.UnRegistryPort(key)
+							logs.Error("客户端来源数据转发到目标端口异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
-					}
+					}()
 				}
 
-			}()
+			}
 		}
-	}
+	}()
 
 	logs.Debug("TcpPortForward sourcePort: ", sourcePort, " Close.")
 
@@ -675,6 +609,67 @@ func (_self *ForwardService) ClosePortForward(sourcePort string, targetPort stri
 
 func (_self *ForwardService) Copy(dst io.Writer, src io.Reader) (written int64, err error) {
 	return io.Copy(dst, src)
+}
+func (_self *ForwardService) EncryptCopy(dst io.Writer, src io.Reader) (written int64, err error) {
+	temp_reader := make([]byte, 32*1024)
+
+	//var start_time,stop_time time.Time
+	for {
+		nr, er := src.Read(temp_reader)
+		if nr > 0 {
+			//logs.Info("接收明文消息：", temp_reader[:n])
+			start_time := time.Now()
+			nw, ew := dst.Write(utils.GetCipherText(temp_reader[0:nr], "astaxie12798akljzmknm.ahkjkljl;k"))
+			stop_time := time.Now()
+			//logs.Info("转发密文消息 OVS -> SecChan ：", temp_reader[:n])
+			logs.Info("消息长度变化：", nr, "->", nw, " ，加密耗时：", stop_time.UnixNano()-start_time.UnixNano())
+
+			if ew != nil {
+				err = ew
+				break
+			}
+			if nr != nw {
+				err = errors.New("short write")
+				break
+			}
+		}
+		if er != nil {
+			err = er
+			break
+		}
+	}
+	return written, err
+}
+
+func (_self *ForwardService) DecryptCopy(dst io.Writer, src io.Reader) (written int64, err error) {
+	temp_reader := make([]byte, 32*1024)
+
+	//var start_time,stop_time time.Time
+	for {
+		nr, er := src.Read(temp_reader)
+		if nr > 0 {
+			//logs.Info("接收明文消息：", temp_reader[:n])
+			start_time := time.Now()
+			nw, ew := dst.Write(utils.GetPlainText(temp_reader[0:nr], "astaxie12798akljzmknm.ahkjkljl;k"))
+			stop_time := time.Now()
+			//logs.Info("转发密文消息 OVS -> SecChan ：", temp_reader[:n])
+			logs.Info("消息长度变化：", nr, "->", nw, " ，解密耗时：", stop_time.UnixNano()-start_time.UnixNano())
+
+			if ew != nil {
+				err = ew
+				break
+			}
+			if nr != nw {
+				err = errors.New("short write")
+				break
+			}
+		}
+		if er != nil {
+			err = er
+			break
+		}
+	}
+	return written, err
 }
 
 func (_self *ForwardService) StartMagicService(addr string, result chan models.ResultData) {
