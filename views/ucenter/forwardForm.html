@@ -22,33 +22,33 @@
         <input type="text" name="port" value="{{if gt .entity.Port 0}}{{.entity.Port}}{{end}}" lay-verify="required|number" placeholder="端口号，例如8080" autocomplete="off" class="layui-input">
       </div>
     </div>
+      <div class="layui-form-item">
+          <label class="layui-form-label">工作位置</label>
+          <div class="layui-input-inline">
+              <select name="End">
+                  <option value="0" {{if eq .entity.End 0}}selected="selected"{{end}}>OVS端</option>
+                  <option value="1" {{if eq .entity.End 1}}selected="selected"{{end}}>控制器端</option>
+              </select>
+          </div>
+      </div>
     <div class="layui-form-item">
       <label class="layui-form-label">工作模式</label>
       <div class="layui-input-inline">
           <select name="fType">
               <option value="0" {{if eq .entity.FType 0}}selected="selected"{{end}}>透明转发</option>
-              <option value="1" {{if eq .entity.FType 1}}selected="selected"{{end}}>加密通信（OVS端）</option>
-              <option value="2" {{if eq .entity.FType 2}}selected="selected"{{end}}>加密通信（控制器端）</option>
+              <option value="1" {{if eq .entity.FType 1}}selected="selected"{{end}}>AES加密转发</option>
           </select>
       </div>
   </div>
       <div class="layui-form-item">
-          <label class="layui-form-label">吞吐测试</label>
+          <label class="layui-form-label">启用TLS</label>
           <div class="layui-input-inline">
-              <select name="Test">
-                  <option value="0" {{if eq .entity.FType 0}}selected="selected"{{end}}>否</option>
-                  <option value="1" {{if eq .entity.FType 1}}selected="selected"{{end}}>是</option>
+              <select name="Tls">
+                  <option value="0" {{if eq .entity.Tls 0}}selected="selected"{{end}}>否</option>
+                  <option value="1" {{if eq .entity.Tls 1}}selected="selected"{{end}}>是</option>
               </select>
           </div>
       </div>
-    <div class="layui-form-item">
-      <label class="layui-form-label">协议</label>
-      <div class="layui-input-inline">
-        <select name="protocol">
-          <option value="TCP">TCP</option>
-        </select>
-      </div>
-    </div>
     <div class="layui-form-item">
       <label class="layui-form-label">转发到地址</label>
       <div class="layui-input-inline">
@@ -61,12 +61,12 @@
         <input type="text" name="targetPort" value="{{if gt .entity.TargetPort 0}}{{.entity.TargetPort}}{{end}}" lay-verify="required|number" placeholder="目标端口号，例如3306" autocomplete="off" class="layui-input">
       </div>
     </div>
-    <div class="layui-form-item">
-      <label class="layui-form-label">多分发</label>
-      <div class="layui-input-block">
-        <input type="text" name="others" value="{{.entity.Others}}" placeholder="如 192.1.1.100:8081;192.1.1.100:8082" title="多个用 ; 号隔开" autocomplete="off" class="layui-input">
-      </div>
-    </div>
+    {{/*<div class="layui-form-item">*/}}
+      {{/*<label class="layui-form-label">多分发</label>*/}}
+      {{/*<div class="layui-input-block">*/}}
+        {{/*<input type="text" name="others" value="{{.entity.Others}}" placeholder="如 192.1.1.100:8081;192.1.1.100:8082" title="多个用 ; 号隔开" autocomplete="off" class="layui-input">*/}}
+      {{/*</div>*/}}
+    {{/*</div>*/}}
     <div class="layui-form-item">
         <pre class="layui-code" style="text-align: left;">
  *工作模式
@@ -76,9 +76,6 @@
             **加密通信（控制器端）
             监听： OVS端设置的转发到的地址和端口
             转发到： 控制器所监听的地址和端口
- *多分发说明：
-            填写格式为 “IP:端口”（多个用 ; 号隔开）
-            不需要留空即可
         </pre> 
     </div>
   </form>

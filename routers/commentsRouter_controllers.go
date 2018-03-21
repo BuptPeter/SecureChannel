@@ -8,205 +8,205 @@ func init() {
 
 	beego.GlobalControllerRouter["port-forward/controllers:DefaultCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:DefaultCtrl"],
 		beego.ControllerComments{
-			Method: "Default",
-			Router: `/`,
+			Method:           "Default",
+			Router:           `/`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:DefaultCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:DefaultCtrl"],
 		beego.ControllerComments{
-			Method: "ApiAuthFail",
-			Router: `/apiAuthFail`,
+			Method:           "ApiAuthFail",
+			Router:           `/apiAuthFail`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "ForwardList",
-			Router: `/u/ForwardList`,
+			Method:           "ForwardList",
+			Router:           `/u/ForwardList`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "ForwardListJson",
-			Router: `/u/ForwardList/json`,
+			Method:           "ForwardListJson",
+			Router:           `/u/ForwardList/json`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "AddForward",
-			Router: `/u/AddForward`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "AddForward",
+			Router:           `/u/AddForward`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "EditForward",
-			Router: `/u/EditForward`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "EditForward",
+			Router:           `/u/EditForward`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "DelForward",
-			Router: `/u/DelForward`,
+			Method:           "DelForward",
+			Router:           `/u/DelForward`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "SaveForward",
-			Router: `/u/SaveForward`,
+			Method:           "SaveForward",
+			Router:           `/u/SaveForward`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "OpenForward",
-			Router: `/u/OpenForward`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "OpenForward",
+			Router:           `/u/OpenForward`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "CloseForward",
-			Router: `/u/CloseForward`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "CloseForward",
+			Router:           `/u/CloseForward`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "ApiDoc",
-			Router: `/u/ApiDoc`,
+			Method:           "ApiDoc",
+			Router:           `/u/ApiDoc`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "NetAgent",
-			Router: `/u/NetAgent`,
+			Method:           "NetAgent",
+			Router:           `/u/NetAgent`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "OpenMagicService",
-			Router: `/u/OpenMagicService`,
+			Method:           "OpenMagicService",
+			Router:           `/u/OpenMagicService`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "CloseMagicService",
-			Router: `/u/CloseMagicService`,
+			Method:           "CloseMagicService",
+			Router:           `/u/CloseMagicService`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "GetMagicStatus",
-			Router: `/u/GetMagicStatus`,
+			Method:           "GetMagicStatus",
+			Router:           `/u/GetMagicStatus`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "GetNetAgentStatus",
-			Router: `/u/GetNetAgentStatus`,
+			Method:           "GetNetAgentStatus",
+			Router:           `/u/GetNetAgentStatus`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "ClearNetAgentStatus",
-			Router: `/u/ClearNetAgentStatus`,
+			Method:           "ClearNetAgentStatus",
+			Router:           `/u/ClearNetAgentStatus`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:HelpCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:HelpCtrl"],
 		beego.ControllerComments{
-			Method: "GetTcp",
-			Router: `/GetTcp`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "GetTcp",
+			Router:           `/GetTcp`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:LoginCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:LoginCtrl"],
 		beego.ControllerComments{
-			Method: "Logout",
-			Router: `/logout`,
+			Method:           "Logout",
+			Router:           `/logout`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:LoginCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:LoginCtrl"],
 		beego.ControllerComments{
-			Method: "Login",
-			Router: `/login`,
+			Method:           "Login",
+			Router:           `/login`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:LoginCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:LoginCtrl"],
 		beego.ControllerComments{
-			Method: "DoLogin",
-			Router: `/login`,
+			Method:           "DoLogin",
+			Router:           `/login`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:RestApiCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:RestApiCtrl"],
 		beego.ControllerComments{
-			Method: "ServerSummary",
-			Router: `/ServerSummary`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "ServerSummary",
+			Router:           `/ServerSummary`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:RestApiCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:RestApiCtrl"],
 		beego.ControllerComments{
-			Method: "OpenForward",
-			Router: `/OpenForward`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "OpenForward",
+			Router:           `/OpenForward`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:RestApiCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:RestApiCtrl"],
 		beego.ControllerComments{
-			Method: "CloseForward",
-			Router: `/CloseForward`,
-			AllowHTTPMethods: []string{"get","post"},
-			Params: nil})
+			Method:           "CloseForward",
+			Router:           `/CloseForward`,
+			AllowHTTPMethods: []string{"get", "post"},
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"],
 		beego.ControllerComments{
-			Method: "Main",
-			Router: `/u/main`,
+			Method:           "Main",
+			Router:           `/u/main`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"],
 		beego.ControllerComments{
-			Method: "Index",
-			Router: `/u/index`,
+			Method:           "Index",
+			Router:           `/u/index`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"],
 		beego.ControllerComments{
-			Method: "GetServerTime",
-			Router: `/u/getServerTime`,
+			Method:           "GetServerTime",
+			Router:           `/u/getServerTime`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"],
 		beego.ControllerComments{
-			Method: "ChangePwd",
-			Router: `/u/changePwd`,
+			Method:           "ChangePwd",
+			Router:           `/u/changePwd`,
 			AllowHTTPMethods: []string{"get"},
-			Params: nil})
+			Params:           nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"],
 		beego.ControllerComments{
-			Method: "DoChangePwd",
-			Router: `/u/doChangePwd`,
+			Method:           "DoChangePwd",
+			Router:           `/u/doChangePwd`,
 			AllowHTTPMethods: []string{"post"},
-			Params: nil})
+			Params:           nil})
 
 }

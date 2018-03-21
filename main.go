@@ -30,7 +30,7 @@ func main() {
 	gob.Register(&models.LoginUser{})
 
 	logs.Debug("================================================================")
-	logs.Debug("               SDN网元数据保护系统 启动...")
+	logs.Debug("               SDN网元数据保护系统v1.1 启动...")
 	logs.Debug("    _____        _           _____           _            _")
 	logs.Debug("   |  __ \\      | |         |  __ \\         | |          | |")
 	logs.Debug("   | |  | | __ _| |_ __ _   | |__) | __ ___ | |_ ___  ___| |_")

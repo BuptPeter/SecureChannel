@@ -154,7 +154,7 @@ func (_self *SysDataService) SavePortForwardByApi(sourcePort, protocol, targetPo
 	entity.Name = "API_Forward_" + sourcePort
 	entity.Addr = sourceArray[0]
 	entity.Port = utils.ToInt(sourceArray[1])
-	entity.Protocol = protocol
+	//entity.Protocol = protocol
 	entity.TargetAddr = targetArray[0]
 	entity.TargetPort = utils.ToInt(targetArray[1])
 	entity.CreateTime = time.Now()
@@ -211,19 +211,20 @@ func (_self *SysDataService) SavePortForward(entity *models.PortForward) error {
 		update.Name = entity.Name
 		update.Addr = entity.Addr
 		update.Port = entity.Port
-		update.Protocol = entity.Protocol
+		//update.Protocol = entity.Protocol
 		update.TargetAddr = entity.TargetAddr
 		update.TargetPort = entity.TargetPort
-		update.Others = entity.Others
+		//update.Others = entity.Others
 		update.FType = entity.FType
-		update.Test = entity.Test
+		update.Tls = entity.Tls
+		update.End = entity.End
 
 		_, err1 := OrmerS.Update(update)
 		return err1
 	} else {
 		entity.CreateTime = time.Now()
-		res, err := OrmerS.Raw("INSERT INTO t_port_forward(name, status, addr, port, protocol, targetAddr, targetPort, createTime, others, fType) values(?,?,?,?,?,?,?,?,?,?)",
-			entity.Name, entity.Status, entity.Addr, entity.Port, entity.Protocol, entity.TargetAddr, entity.TargetPort, entity.CreateTime, entity.Others, entity.FType).Exec()
+		res, err := OrmerS.Raw("INSERT INTO t_port_forward(name, status, addr, port, targetAddr, targetPort, createTime, fType,tls,end) values(?,?,?,?,?,?,?,?,?,?)",
+			entity.Name, entity.Status, entity.Addr, entity.Port, entity.TargetAddr, entity.TargetPort, entity.CreateTime, entity.FType, entity.Tls, entity.End).Exec()
 		if err == nil {
 			num, _ := res.RowsAffected()
 			logs.Debug("AddPortForward", num)

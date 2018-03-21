@@ -8,7 +8,7 @@ import (
 
 	"fmt"
 
-	"github.com/astaxie/beego"
+	//"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
 )
 
@@ -115,9 +115,10 @@ func (c *ForwardCtrl) SaveForward() {
 	//protocol := c.GetString("protocol", "TCP")
 	targetAddr := c.GetString("targetAddr", "")
 	targetPort, _ := c.GetInt("targetPort")
-	others := c.GetString("others", "")
+	//others := c.GetString("others", "")
 	fType, _ := c.GetInt("fType")
-	test, _ := c.GetInt("Test")
+	Tls, _ := c.GetInt("Tls")
+	End, _ := c.GetInt("End")
 
 	if utils.IsEmpty(name) {
 		//
@@ -147,15 +148,6 @@ func (c *ForwardCtrl) SaveForward() {
 		return
 	}
 
-	// if utils.IsNotEmpty(others) {
-	// 	//如果有others信息，则检查
-
-	// }
-
-	if fType > 0 {
-		//内网穿透模式，暂不支持多端口分发
-		others = ""
-	}
 
 	if id > 0 {
 		entity := services.SysDataS.GetPortForwardById(id)
@@ -170,18 +162,18 @@ func (c *ForwardCtrl) SaveForward() {
 	}
 
 	name = utils.FilterHtml(name)
-
 	entity := &models.PortForward{}
 	entity.Id = id
 	entity.Name = name
 	entity.Addr = addr
 	entity.Port = port
-	entity.Protocol = "TCP"
+	//entity.Protocol = "TCP"
 	entity.TargetAddr = targetAddr
 	entity.TargetPort = targetPort
-	entity.Others = others
+	//entity.Others = others
 	entity.FType = fType
-	entity.Test = test
+	entity.Tls = Tls
+	entity.End = End
 
 	err := services.SysDataS.SavePortForward(entity)
 	if err == nil {
@@ -200,14 +192,15 @@ func (c *ForwardCtrl) OpenForward() {
 	entity := services.SysDataS.GetPortForwardById(id)
 	resultChan := make(chan models.ResultData)
 
-	if entity.Test ==0{
+	if entity.Tls == 0 {
+		logs.Debug("StartTcpPortForward  ")
 		go services.ForwardS.StartPortForward(entity, resultChan)
-	}else if entity.Test ==1{
-		go services.ForwardS.StartTestPortForward(entity, resultChan)
+	} else if entity.Tls == 1 {
+		logs.Debug("StartTLSPortForward  ")
+		go services.ForwardS.StartTlsPortForward(entity, resultChan)
 	}
 
-
-	c.Data["json"] = <- resultChan
+	c.Data["json"] = <-resultChan
 
 	c.ServeJSON()
 
@@ -246,75 +239,75 @@ func (c *ForwardCtrl) NetAgent() {
 // @router /u/OpenMagicService [post]
 func (c *ForwardCtrl) OpenMagicService() {
 
-	addr := beego.AppConfig.DefaultString("magic.service", ":7000")
-
-	resultChan := make(chan models.ResultData)
-	go services.ForwardS.StartMagicService(addr, resultChan)
-
-	c.Data["json"] = <-resultChan
-	//c.Data["json"] = models.ResultData{Code: 0, Msg: ""}
-
-	c.ServeJSON()
+	//addr := beego.AppConfig.DefaultString("magic.service", ":7000")
+	//
+	//resultChan := make(chan models.ResultData)
+	//go services.ForwardS.StartMagicService(addr, resultChan)
+	//
+	//c.Data["json"] = <-resultChan
+	////c.Data["json"] = models.ResultData{Code: 0, Msg: ""}
+	//
+	//c.ServeJSON()
 }
 
 // @router /u/CloseMagicService [post]
 func (c *ForwardCtrl) CloseMagicService() {
-
-	resultChan := make(chan models.ResultData)
-	go services.ForwardS.StopMagicService(resultChan)
-
-	c.Data["json"] = <-resultChan
-
-	c.ServeJSON()
+	//
+	//resultChan := make(chan models.ResultData)
+	//go services.ForwardS.StopMagicService(resultChan)
+	//
+	//c.Data["json"] = <-resultChan
+	//
+	//c.ServeJSON()
 }
 
 // @router /u/GetMagicStatus [post]
 func (c *ForwardCtrl) GetMagicStatus() {
 
-	magicListener := services.ForwardS.GetMagicListener()
-	if magicListener == nil {
-		c.Data["json"] = models.ResultData{Code: 1, Msg: "未运行"}
-	} else {
-		c.Data["json"] = models.ResultData{Code: 0, Msg: "正在运行中..."}
-	}
-
-	c.ServeJSON()
+	//magicListener := services.ForwardS.GetMagicListener()
+	//if magicListener == nil {
+	//	c.Data["json"] = models.ResultData{Code: 1, Msg: "未运行"}
+	//} else {
+	//	c.Data["json"] = models.ResultData{Code: 0, Msg: "正在运行中..."}
+	//}
+	//
+	//c.ServeJSON()
 }
 
 // @router /u/GetNetAgentStatus [post]
 func (c *ForwardCtrl) GetNetAgentStatus() {
-	agentMap := services.ForwardS.GetMagicClient()
-
-	if len(agentMap) > 0 {
-		count := len(agentMap)
-		for k, _ := range agentMap {
-			c.Data["json"] = models.ResultData{Code: 0, Msg: k, Data: count}
-			//只取1个先
-			break
-		}
-
-	} else {
-		c.Data["json"] = models.ResultData{Code: 1, Msg: "未检测到Agent连接"}
-	}
-
-	c.ServeJSON()
+	//agentMap := services.ForwardS.GetMagicClient()
+	//
+	//if len(agentMap) > 0 {
+	//	count := len(agentMap)
+	//	for k, _ := range agentMap {
+	//		c.Data["json"] = models.ResultData{Code: 0, Msg: k, Data: count}
+	//		//只取1个先
+	//		break
+	//	}
+	//
+	//} else {
+	//	c.Data["json"] = models.ResultData{Code: 1, Msg: "未检测到Agent连接"}
+	//}
+	//
+	//c.ServeJSON()
 }
 
 // @router /u/ClearNetAgentStatus [post]
 func (c *ForwardCtrl) ClearNetAgentStatus() {
-	agentMap := services.ForwardS.GetMagicClient()
-
-	if len(agentMap) > 0 {
-		for k, v := range agentMap {
-			if v != nil {
-				v.Close()
-				services.ForwardS.UnRegistryMagicClient(k)
-				logs.Debug("关闭Agent：", k)
-			}
-		}
-
-	}
-
-	c.Data["json"] = models.ResultData{Code: 0, Msg: ""}
-	c.ServeJSON()
+	//agentMap := services.ForwardS.GetMagicClient()
+	//
+	//if len(agentMap) > 0 {
+	//	for k, v := range agentMap {
+	//		if v != nil {
+	//			v.Close()
+	//			services.ForwardS.UnRegistryMagicClient(k)
+	//			logs.Debug("关闭Agent：", k)
+	//		}
+	//	}
+	//
+	//}
+	//
+	//c.Data["json"] = models.ResultData{Code: 0, Msg: ""}
+	//c.ServeJSON()
 }

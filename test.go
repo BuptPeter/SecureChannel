@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"time"
@@ -49,7 +49,7 @@ func  StartTLSClient(targetPort string) (conn tls.Conn,err error) {
 	return *targetConn,nil
 	}
 
-func main(){
+func test(){
 	addr := "127.0.0.1"
 	port := "8778"
 

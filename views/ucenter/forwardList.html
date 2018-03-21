@@ -12,16 +12,16 @@
           <colgroup>
             <col width="20">
             <col width="50">
-            <col width="300">
+            <col width="270">
             <col width="150">
             <col width="120">
+            <col width="130">
             <col width="150">
-            <col width="50">
-              <col width="70">
+            <col width="90">
             <col width="150">
             <col width="100">
             <col width="70">
-            <col width="200">
+            <col width="120">
           </colgroup>
           <thead>
             <tr>
@@ -32,9 +32,9 @@
               <th>名称</th>
               <th>本地监听地址</th>
               <th>本地监听端口</th>
-              <th>转发方式</th>
-                <th>协议</th>
-                <th>测试</th>
+                <th>工作位置</th>
+                <th>转发方式</th>
+                <th>启用TLS</th>
               <th>转发到地址</th>
               <th>转发到端口</th>
               <th>状态</th>
@@ -49,9 +49,23 @@
     </div>
     <div class="layui-tab-item">
       <pre class="layui-code">
-自适应的SDN网元数据保护系统 V1.00
+自适应的SDN网元数据保护系统 V1.2
 
 用于SDN场景下，Open vSwitch与控制器之间的加密数据通信和Open vSwitch本地数据防篡改。
+        2018-01-26  v1.0
+          1.稳定通信数据元加解密功能
+          2.API接口稳定可用
+          3.稳定大并发性能
+          4.性能测试稳定在10W/s
+
+        2018-03-06  v1.1:
+          1.删除测试模式
+          2.添加是否启用TLS选项
+
+        2018-03-21  v1.2:
+          1.添加工作位置选项
+          2.删除协议及多分发
+          3.Fix Bugs
             </pre>
     </div>
   </div>
@@ -72,9 +86,9 @@
     <td>{Start{ item.Name }End}</td>
     <td>{Start{ fmtAddr(item.Addr) }End}</td>
     <td>{Start{ item.Port }End}</td>
+    <td>{Start{ fmtEnd(item.End) }End}</td>
     <td>{Start{ fmtFType(item.FType) }End}</td>
-    <td>{Start{ item.Protocol }End}</td>
-      <td>{Start{ fmtTest(item.Test) }End}</td>
+    <td>{Start{ fmtTls(item.Tls) }End}</td>
     <td>{Start{ item.TargetAddr }End}</td>
     <td>{Start{ item.TargetPort }End}</td>
     <td>{Start{ fmtStatus(item.Status) }End}</td>
@@ -174,10 +188,7 @@ function fmtFType(val) {
             html = "<font color='blue'>透明转发</font>";
             break;
         case 1:
-            html = "<font color='orange'>加密通信（OVS端）</font>";
-            break;
-        case 2:
-            html = "<font color='red'>加密通信（控制器端）</font>";
+            html = "<font color='orange'>AES加密通信</font>";
             break;
         default:
             html = "<font color='gray'>其它:" + val + "</font>";
@@ -185,7 +196,22 @@ function fmtFType(val) {
     }
     return html;
 }
-function fmtTest(val) {
+function fmtEnd(val) {
+    var html = "";
+    switch (val) {
+        case 0:
+            html = "<font color='blue'>OVS端</font>";
+            break;
+        case 1:
+            html = "<font color='orange'>控制器端</font>";
+            break;
+        default:
+            html = "<font color='gray'>其它:" + val + "</font>";
+            break;
+    }
+    return html;
+}
+function fmtTls(val) {
     var html = "";
     switch (val) {
         case 0:
