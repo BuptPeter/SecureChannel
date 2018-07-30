@@ -29,8 +29,9 @@ func main() {
 	//beego.BConfig.WebConfig.Session.SessionProviderConfig = "./session"
 	gob.Register(&models.LoginUser{})
 
+
 	logs.Debug("================================================================")
-	logs.Debug("               SDN网元数据保护系统v1.1 启动...")
+	logs.Debug("               SDN网元数据保护系统v3.0 启动...")
 	logs.Debug("    _____        _           _____           _            _")
 	logs.Debug("   |  __ \\      | |         |  __ \\         | |          | |")
 	logs.Debug("   | |  | | __ _| |_ __ _   | |__) | __ ___ | |_ ___  ___| |_")
@@ -42,6 +43,7 @@ func main() {
 
 	//默认static目录是可以直接访问的，其它目录需要单独指定
 	beego.SetStaticPath("/theme", "theme")
+	beego.SetStaticPath("/flowcheck", "flowcheck")
 
 	//启动应用
 	beego.Run()

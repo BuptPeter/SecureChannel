@@ -7,6 +7,14 @@ import (
 )
 
 type PortForward struct {
+	Key_state int `orm:"column(key_state);null"`
+	Key_id  int `orm:"column(key_id);null"`
+	Key_time string `orm:"column(key_time);size(256);null"`
+	Kdc string `orm:"column(kdc);size(256);null"`
+	Con_ticket string `orm:"column(con_ticket);size(512);null"`
+	Ovs_ticket string `orm:"column(ovs_ticket);size(512);null"`
+	Key string `orm:"column(key);size(256);null"`
+
 	Id   int    `orm:"column(id);pk"`
 	Name string `orm:"column(name);size(256);null"`
 	// 0:禁用,1:启用

@@ -1,0 +1,338 @@
+<div class="layui-tab layui-tab-card">
+  <ul class="layui-tab-title">
+    <li class="layui-this">网元数据转发列表</li>
+    <li>帮助说明</li>
+  </ul>
+  <div class="layui-tab-content" style="height: auto;">
+    <div class="layui-tab-item layui-show">
+      {{/*<button class="layui-btn layui-btn-small" onclick="addForward();"><i class="layui-icon"></i> 添加转发</button>*/}}
+      {{/*<button class="layui-btn layui-btn-small" onclick="delForward();"><i class="layui-icon"></i> 批量删除</button>*/}}
+      <div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            {{/*<col width="100">*/}}
+            <col width="50">
+            <col width="270">
+            <col width="100">
+            <col width="200">
+            <col width="220">
+            <col width="220">
+            {{/*<col width="90">*/}}
+            {{/*<col width="150">*/}}
+            {{/*<col width="100">*/}}
+            {{/*<col width="70">*/}}
+            <col width="320">
+          </colgroup>
+          <thead>
+            <tr>
+
+              <th>ID</th>
+              <th>名称</th>
+              <th>工作位置</th>
+              <th>密钥状态</th>
+              <th>会话密钥</th>
+              <th>票据信息</th>
+              <th>操作时间</th>
+
+                {{/*<th>转发方式</th>*/}}
+                {{/*<th>启用TLS</th>*/}}
+              {{/*<th>转发到地址</th>*/}}
+              {{/*<th>转发到端口</th>*/}}
+              {{/*<th>状态</th>*/}}
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="pagination"></div>
+    </div>
+    <div class="layui-tab-item">
+      <pre class="layui-code">
+自适应的SDN网元数据保护系统 V2.1
+          身份认证及密钥分发使用：
+          1.首先在开启KDC服务器
+          2.在OVS端请求KDC分配票据
+          3.在控制器端开启密钥接收服务器
+          4.在OVS端请求分配密钥到控制器
+          5.完成会话密钥分发
+
+
+            </pre>
+    </div>
+  </div>
+</div>
+<script id="grid_tpl" type="text/html">
+  {Start{# if(d.Data === null || d.Data.length === 0){ }End}
+  <tr>
+    <td colspan="10">
+      请先添加一条端口转发配置规则
+    </td>
+  </tr>
+  {Start{# } else { }End} {Start{# layui.each(d.Data, function(index, item){ }End}
+  <tr>
+    {{/*<td>*/}}
+      {{/*<input type="checkbox" name="id" lay-skin="primary" value="{Start{ item.Id }End}">*/}}
+    {{/*</td>*/}}
+    <td>{Start{ item.Id }End}</td>
+    <td>{Start{ item.Name }End}</td>
+          <td>{Start{ fmtEnd(item.End) }End}</td>
+    <td>{Start{ fmtState(item.End,item.Key_state) }End}</td>
+    <td>{Start{ item.Key }End}</td>
+    <td>{Start{ fmtTicket(item.End,item)}End}</td>
+
+    <td>{Start{ fmtTime(item.Key_time) }End}</td>
+
+    {{/*<td>{Start{ fmtFType(item.FType) }End}</td>*/}}
+    {{/*<td>{Start{ fmtTls(item.Tls) }End}</td>*/}}
+    {{/*<td>{Start{ item.TargetAddr }End}</td>*/}}
+    {{/*<td>{Start{ item.TargetPort }End}</td>*/}}
+    {{/*<td>{Start{ fmtStatus(item.Status) }End}</td>*/}}
+    <td>{Start{ oprFormatLink(item.End,item.Key_state,item) }End}</td>
+  </tr>
+  {Start{# }); }End} {Start{# } }End}
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+  layui.use(["jquery", "layer", "form", "element", "laytpl", "laypage"], function() {
+    var $ = layui.jquery,
+      layer = layui.layer,
+      form = layui.form(),
+      laytpl = layui.laytpl,
+      laypage = layui.laypage;
+    //全选
+    form.on('checkbox(allChoose)', function(data) {
+      var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
+      child.each(function(index, item) {
+        item.checked = data.elem.checked;
+      });
+      form.render('checkbox');
+    });
+    layui.laytpl.config({
+      open: "{Start{",
+      close: "}End}"
+    });
+    query(1);
+  });
+});
+
+function query(pIndex) {
+  // var columnFiled = $("#columnFiled").val();
+  // var keyWord = $("#keyWord").val();
+  $.post("ForwardList/json", {
+    pIndex: pIndex,
+    pSize: 10
+  }, function(json) {
+    if (json.Code == 0) { //成功
+      renderGrid(json.Data);
+      var totalPages = json.Data.Pages;
+      var totalRows = json.Data.TotalRows;
+      //显示分页
+      layui.laypage({
+        cont: 'pagination', //容器
+        pages: totalPages, //通过后台拿到的总页数
+        total: totalRows,
+        groups: 5, //连续分页数
+        skin: "#51b921", //控制分页皮肤。目前支持：molv、yahei、flow 除此之外，还支持16进制颜色值，如:skin:'#c00'
+        curr: pIndex || 1, //当前页
+        skip: true,
+        jump: function(obj, first) { //触发分页后的回调
+          if (!first) { //点击跳页触发函数自身，并传递当前页：obj.curr
+            query(obj.curr);
+          }
+        }
+      });
+      layui.form().render('checkbox');
+    } else { //失败
+      layui.layer.alert("失败：" + json.Msg, {
+        icon: 2
+      });
+    }
+  }, 'json');
+}
+
+function renderGrid(data) {
+  var grid_tpl = document.getElementById('grid_tpl').innerHTML;
+  layui.laytpl(grid_tpl).render(data, function(html) {
+    $("#gridBody").html(html);
+  });
+}
+
+function oprFormatLink(end,val,row) {
+  var html = "";
+  if(end ==0){
+      switch (val) {
+        case 0:
+                html += "<button class=\"layui-btn layui-btn-normal\" onclick='ClientKDC(" + row.Id + ");'><i class=\"layui-icon\"></i> 连接KDC，请求票据</button>";
+            break;
+        case 1:
+                html += "<button class=\"layui-btn layui-btn-danger\" onclick='ClientController(" + row.Id + ");'><i class=\"layui-icon\"></i> 连接控制器，分配密钥</button>";
+            break;
+        default:
+            html += "<button class=\"layui-btn  layui-btn-primary\" onclick='ClientKDC(" + row.Id + ");'><i class=\"layui-icon\"></i> 重新连接KDC，请求票据</button>";
+            break;
+    }
+  }
+    if(end==1){
+          switch (val) {
+            case 0:
+                html += "<button class=\"layui-btn layui-btn-normal\" onclick='StartService(" + row.Id + ");'><i class=\"layui-icon\"></i> 启动密钥接收服务</button>";
+                break;
+              case 1:
+                html += "<button class=\"layui-btn layui-btn-danger\" onclick='StopService(" + row.Id + ");'><i class=\"layui-icon\"></i> 停止密钥接收服务</button>";
+                break;
+            default :
+                html += "<button class=\"layui-btn  layui-btn-primary\" onclick='StartService(" + row.Id + ");'><i class=\"layui-icon\"></i> 重新启动接收服务</button>";
+                break;
+
+        }
+    }
+
+
+
+  return html;
+}
+
+function fmtState(end,val) {
+    var html = "";
+      if(end ==0) {
+          switch (val) {
+              case 0:
+                  html = "<font color='red'>未与KDC连接</font>";
+                  break;
+              case 1:
+                  html = "<font color='orange'>待分发给控制器</font>";
+                  break;
+              case 2:
+                  html = "<font color='green'>分配完成</font>";
+                  break;
+              default:
+                  html = "<font color='gray'>未知状态:" + val + "</font>";
+                  break;
+          }
+      }
+    if(end ==1) {
+          switch (val) {
+              case 0:
+                  html = "<font color='red'>未启动密钥接收服务</font>";
+                  break;
+              case 1:
+                  html = "<font color='orange'>密钥接收服务启动</font>";
+                  break;
+              case 2:
+                  html = "<font color='green'>密钥分配成功</font>";
+                  break;
+              default:
+                  html = "<font color='gray'>未知状态:" + val + "</font>";
+                  break;
+          }
+      }
+    return html;
+}
+
+function fmtTime(val) {
+    var html = "";
+    html = "<font>" + val.slice(0,19) + "</font>";
+
+    return html;
+}
+
+function fmtTicket(end,item) {
+    var html = "";
+      if(end ==0) {
+          html = "<font color='green'>"+item.Ovs_ticket.slice(0,45)+"<br>"+item.Ovs_ticket.slice(45,95)+" </font>";
+
+
+      }
+    if(end ==1) {
+        html = "<font color='green'>"+item.Con_ticket.slice(0,45)+"<br>"+item.Con_ticket.slice(45,95)+"</font>";
+      }
+    return html;
+}
+
+function ClientKDC(id) {
+  layer.confirm("确定KDC已启动，并请求分配会话密钥吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/ClientKDC", {
+      rnd: Math.random(),
+      id: id
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功,请到控制器端开启密钥接收服务...");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+function ClientController(id) {
+  layer.confirm("确定控制器端服务已启动，并分配会话密钥吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/ClientController", {
+      rnd: Math.random(),
+      id: id
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+
+function StartService(id) {
+  layer.confirm("确定启动密钥接收服务吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/StartService", {
+      rnd: Math.random(),
+      id: id
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+
+
+function StopService(id) {
+  layer.confirm("确定密钥接收服务吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/StopService", {
+      rnd: Math.random(),
+      id: id
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+
+</script>

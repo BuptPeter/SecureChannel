@@ -61,12 +61,13 @@
         <input type="text" name="targetPort" value="{{if gt .entity.TargetPort 0}}{{.entity.TargetPort}}{{end}}" lay-verify="required|number" placeholder="目标端口号，例如3306" autocomplete="off" class="layui-input">
       </div>
     </div>
-    {{/*<div class="layui-form-item">*/}}
-      {{/*<label class="layui-form-label">多分发</label>*/}}
-      {{/*<div class="layui-input-block">*/}}
-        {{/*<input type="text" name="others" value="{{.entity.Others}}" placeholder="如 192.1.1.100:8081;192.1.1.100:8082" title="多个用 ; 号隔开" autocomplete="off" class="layui-input">*/}}
-      {{/*</div>*/}}
-    {{/*</div>*/}}
+    <div class="layui-form-item">
+      <label class="layui-form-label">KDC地址</label>
+      <div class="layui-input-inline">
+        <input type="text" name="KDC" value="{{.entity.Kdc}}" placeholder="DKC的网络IP地址" autocomplete="off" class="layui-input">
+
+      </div>
+    </div>
     <div class="layui-form-item">
         <pre class="layui-code" style="text-align: left;">
  *工作模式
@@ -95,9 +96,6 @@
   });
 
   function submitForm(index) {
-    // if ($("#form1").submit() == false) {
-    //   return;
-    // }
     var postData = $("#form1").serializeArray();
     $.post($("#form1").attr("action"), postData, function (json) {
       //var data = $.parseJSON(json);

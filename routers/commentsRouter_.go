@@ -23,6 +23,22 @@ func init() {
 			MethodParams: param.Make(),
 			Params: nil})
 
+	beego.GlobalControllerRouter["port-forward/controllers:FlowModCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:FlowModCtrl"],
+		beego.ControllerComments{
+			Method: "FlowCheckListJson",
+			Router: `/u/FlowCheckList/json`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:FlowModCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:FlowModCtrl"],
+		beego.ControllerComments{
+			Method: "FlowModListJson",
+			Router: `/u/FlowModList/json`,
+			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
 			Method: "AddForward",
@@ -33,17 +49,25 @@ func init() {
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "ApiDoc",
-			Router: `/u/ApiDoc`,
-			AllowHTTPMethods: []string{"get"},
+			Method: "ClearNetAgentStatus",
+			Router: `/u/ClearNetAgentStatus`,
+			AllowHTTPMethods: []string{"post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
-			Method: "ClearNetAgentStatus",
-			Router: `/u/ClearNetAgentStatus`,
-			AllowHTTPMethods: []string{"post"},
+			Method: "ClientController",
+			Router: `/u/ClientController`,
+			AllowHTTPMethods: []string{"get","post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
+			Method: "ClientKDC",
+			Router: `/u/ClientKDC`,
+			AllowHTTPMethods: []string{"get","post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -113,9 +137,33 @@ func init() {
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
+			Method: "Kerberos",
+			Router: `/u/Kerberos`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
 			Method: "NetAgent",
 			Router: `/u/NetAgent`,
 			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
+			Method: "OpenFlowCheckService",
+			Router: `/u/OpenFlowCheck`,
+			AllowHTTPMethods: []string{"get","post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
+			Method: "OpenFlowModService",
+			Router: `/u/OpenFlowMod`,
+			AllowHTTPMethods: []string{"get","post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -137,9 +185,33 @@ func init() {
 
 	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
 		beego.ControllerComments{
+			Method: "OvsCheck",
+			Router: `/u/OvsCheck`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
+			Method: "OvsHash",
+			Router: `/u/OvsHash`,
+			AllowHTTPMethods: []string{"get"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
 			Method: "SaveForward",
 			Router: `/u/SaveForward`,
 			AllowHTTPMethods: []string{"post"},
+			MethodParams: param.Make(),
+			Params: nil})
+
+	beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:ForwardCtrl"],
+		beego.ControllerComments{
+			Method: "StartService",
+			Router: `/u/StartService`,
+			AllowHTTPMethods: []string{"get","post"},
 			MethodParams: param.Make(),
 			Params: nil})
 
@@ -220,14 +292,6 @@ func init() {
 			Method: "GetServerTime",
 			Router: `/u/getServerTime`,
 			AllowHTTPMethods: []string{"post"},
-			MethodParams: param.Make(),
-			Params: nil})
-
-	beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"] = append(beego.GlobalControllerRouter["port-forward/controllers:UCenterCtrl"],
-		beego.ControllerComments{
-			Method: "Index",
-			Router: `/u/index`,
-			AllowHTTPMethods: []string{"get"},
 			MethodParams: param.Make(),
 			Params: nil})
 

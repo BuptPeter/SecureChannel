@@ -1,134 +1,381 @@
-
-<div style="margin: auto;width: 900px;height: 500px;">
-
-<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">
-  <legend>OVS-Agent</legend>
-</fieldset>  
-
-<blockquote class="layui-elem-quote">
-    连接状态：<span id="magicStatus"><font color='red'>未连接</font>  <button class='layui-btn layui-btn-small' onclick='OpenMagicService();'>连接到控制器端</button></span>
-</blockquote>
-    <div class="layui-form-item">
-      <pre class="layui-code">
-对于运行在OVS端的DataProtect：
-          可以开启OVS-Agent连接到控制器端，用来上报本地防篡改检查情况和动态调整源认证方案等；
-对于运行在控制器端的DataProtec:
-          无需开启。</pre>
+<div class="layui-tab layui-tab-card">
+  <ul class="layui-tab-title">
+    <li class="layui-this">网元数据转发列表</li>
+    <li>帮助说明</li>
+  </ul>
+  <div class="layui-tab-content" style="height: auto;">
+    <div class="layui-tab-item layui-show">
+      <button class="layui-btn layui-btn-small" onclick="addForward();"><i class="layui-icon"></i> 添加转发</button>
+      <button class="layui-btn layui-btn-small" onclick="delForward();"><i class="layui-icon"></i> 批量删除</button>
+      <div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            <col width="20">
+            <col width="50">
+            <col width="270">
+            <col width="150">
+            <col width="120">
+            <col width="130">
+            <col width="150">
+            <col width="90">
+            <col width="150">
+            <col width="100">
+            <col width="70">
+            <col width="120">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" name="" lay-skin="primary" lay-filter="allChoose">
+              </th>
+              <th>ID</th>
+              <th>名称</th>
+              <th>本地监听地址</th>
+              <th>本地监听端口</th>
+                <th>工作位置</th>
+                <th>转发方式</th>
+                <th>启用TLS</th>
+              <th>转发到地址</th>
+              <th>转发到端口</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="pagination"></div>
     </div>
+    <div class="layui-tab-item">
+      <pre class="layui-code">
+自适应的SDN网元数据保护系统 V2.1
 
-{{/*<fieldset class="layui-elem-field layui-field-title" style="margin-top: 50px;">*/}}
-  {{/*<legend>内网穿透代理</legend>*/}}
-{{/*</fieldset>*/}}
+用于SDN场景下，Open vSwitch与控制器之间的加密数据通信和Open vSwitch本地数据防篡改。
+        2018-01-26  v1.0
+          1.稳定通信数据元加解密功能
+          2.API接口稳定可用
+          3.稳定大并发性能
+          4.性能测试稳定在10W/s
 
-{{/*<blockquote class="layui-elem-quote">*/}}
-  {{/*NetAgent状态：<span id="netAgentStatus"><font color=red>未检测到Agent连接</font></span>  <button class="layui-btn layui-btn-small" onclick="GetNetAgentStatus();">刷新</button>*/}}
-  {{/*<button class='layui-btn layui-btn-small' onclick='ClearNetAgentStatus();'>清空连接</button>*/}}
-{{/*</blockquote>*/}}
+        2018-03-06  v1.1:
+          1.删除测试模式
+          2.添加是否启用TLS选项
 
-  {{/*<div class="layui-form-item">*/}}
-      {{/*<pre class="layui-code">*/}}
-{{/*如果需要实现外网与内网端口的穿透，请将 Port-Forward 端部署在外网服务器上，将 NetAgent 部署在您的内网。*/}}
+        2018-03-21  v1.2:
+          1.添加工作位置选项
+          2.删除协议及多分发
+          3.Fix Bugs
 
-{{/*NetAgent 所在内网机器必须要能上网，能访问到 Port-Forward 所在的服务器。*/}}
-{{/*Port-Forward 所在服务器，要确定相应的端口不被防火墙拦截，如果有拦截请修改防火墙配置。*/}}
+        2018-05-21 v2.0:
+          1.修改转发方式为数据流加解密
+          2.速度大幅提升
 
-{{/*NetAgent 下载 <a href="http://git.oschina.net/tavenli/port-forward/releases" target="_blank">http://git.oschina.net/tavenli/port-forward/releases</a>*/}}
-      {{/*</pre> */}}
-  {{/*</div>*/}}
+        2018-05-21 v2.1:
+          1.加入Kerberos身份认证和密钥分发
 
-
-
-
-
+            </pre>
+    </div>
+  </div>
 </div>
-
-<script type="text/javascript">
-
-    $(document).ready(function () {
-
-        layui.use(['jquery','layer', 'form', 'element'], function () {
-            var $ = layui.jquery, form = layui.form();
-
-
-        });
-
-        // GetMagicStatus();
-        // GetNetAgentStatus();
-
-    });
-
-    function OpenMagicService(){
-        layer.confirm("确定开启穿透服务吗？", {
-            btn: ['确定', '取消'] //按钮
-        }, function(index, layero) {
-            $.post("/u/OpenMagicService", {rnd: Math.random()}, function(json) {
-            if (json.Code == 0) { //成功
-                layer.msg("执行成功.");
-                GetMagicStatus();
-            } else { //失败
-                layer.alert(json.Msg, {icon: 2});
-
-            }
-            }, 'json');
-        });
-    }
-
-    function CloseMagicService(){
-        layer.confirm("确定关闭穿透服务吗？", {
-            btn: ['确定', '取消'] //按钮
-        }, function(index, layero) {
-            $.post("/u/CloseMagicService", {rnd: Math.random()}, function(json) {
-            if (json.Code == 0) { //成功
-                layer.msg("执行成功.");
-                GetMagicStatus();
-            } else { //失败
-                layer.alert(json.Msg, {icon: 2});
-
-            }
-            }, 'json');
-        });
-    }
-
-    function GetMagicStatus(){
-        $.post("/u/GetMagicStatus",{rnd:Math.random()}, function(json) {
-            var html = "";
-            if(json.Code == 0){
-                html += "<font color='green'>"+json.Msg+"</font> <button class='layui-btn layui-btn-small' onclick='CloseMagicService();'>断开连接</button>";
-            }else{
-                html += "<font color='red'>"+json.Msg+"</font>  <button class='layui-btn layui-btn-small' onclick='OpenMagicService();'>连接到控制器</button>";
-            }
-            
-            $("#magicStatus").html(html);
-
-        }, 'json');
-    }
-
-    function GetNetAgentStatus(){
-        $.post("/u/GetNetAgentStatus",{rnd:Math.random()}, function(json) {
-            var html = "";
-            if(json.Code == 0){
-                html += "<font color='green'>"+json.Msg+"</font>";                            
-            }else{
-                html += "<font color='red'>"+json.Msg+"</font>";
-            }
-            
-            $("#netAgentStatus").html(html);
-
-        }, 'json');
-    }
-
-    function ClearNetAgentStatus(){
-        $.post("/u/ClearNetAgentStatus",{rnd:Math.random()}, function(json) {
-            var html = "";
-            if(json.Code == 0){
-                $("#netAgentStatus").html("<font color='red'>未检测到Agent连接</font>");                     
-            }else{
-                layer.alert(json.Msg, {icon: 2});
-            }            
-            
-
-        }, 'json');
-    }
-
+<script id="grid_tpl" type="text/html">
+  {Start{# if(d.Data === null || d.Data.length === 0){ }End}
+  <tr>
+    <td colspan="10">
+      请先添加一条端口转发配置规则
+    </td>
+  </tr>
+  {Start{# } else { }End} {Start{# layui.each(d.Data, function(index, item){ }End}
+  <tr>
+    <td>
+      <input type="checkbox" name="id" lay-skin="primary" value="{Start{ item.Id }End}">
+    </td>
+    <td>{Start{ item.Id }End}</td>
+    <td>{Start{ item.Name }End}</td>
+    <td>{Start{ fmtAddr(item.Addr) }End}</td>
+    <td>{Start{ item.Port }End}</td>
+    <td>{Start{ fmtEnd(item.End) }End}</td>
+    <td>{Start{ fmtFType(item.FType) }End}</td>
+    <td>{Start{ fmtTls(item.Tls) }End}</td>
+    <td>{Start{ item.TargetAddr }End}</td>
+    <td>{Start{ item.TargetPort }End}</td>
+    <td>{Start{ fmtStatus(item.Status) }End}</td>
+    <td>{Start{ oprFormatLink(item.Status,item) }End}</td>
+  </tr>
+  {Start{# }); }End} {Start{# } }End}
 </script>
+<script type="text/javascript">
+$(document).ready(function() {
+  layui.use(["jquery", "layer", "form", "element", "laytpl", "laypage"], function() {
+    var $ = layui.jquery,
+      layer = layui.layer,
+      form = layui.form(),
+      laytpl = layui.laytpl,
+      laypage = layui.laypage;
+    //全选
+    form.on('checkbox(allChoose)', function(data) {
+      var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
+      child.each(function(index, item) {
+        item.checked = data.elem.checked;
+      });
+      form.render('checkbox');
+    });
+    layui.laytpl.config({
+      open: "{Start{",
+      close: "}End}"
+    });
+    query(1);
+  });
+});
 
+function query(pIndex) {
+  // var columnFiled = $("#columnFiled").val();
+  // var keyWord = $("#keyWord").val();
+  $.post("ForwardList/json", {
+    pIndex: pIndex,
+    pSize: 10
+  }, function(json) {
+    if (json.Code == 0) { //成功
+      renderGrid(json.Data);
+      var totalPages = json.Data.Pages;
+      var totalRows = json.Data.TotalRows;
+      //显示分页
+      layui.laypage({
+        cont: 'pagination', //容器
+        pages: totalPages, //通过后台拿到的总页数
+        total: totalRows,
+        groups: 5, //连续分页数
+        skin: "#51b921", //控制分页皮肤。目前支持：molv、yahei、flow 除此之外，还支持16进制颜色值，如:skin:'#c00'
+        curr: pIndex || 1, //当前页
+        skip: true,
+        jump: function(obj, first) { //触发分页后的回调
+          if (!first) { //点击跳页触发函数自身，并传递当前页：obj.curr
+            query(obj.curr);
+          }
+        }
+      });
+      layui.form().render('checkbox');
+    } else { //失败
+      layui.layer.alert("失败：" + json.Msg, {
+        icon: 2
+      });
+    }
+  }, 'json');
+}
+
+function renderGrid(data) {
+  var grid_tpl = document.getElementById('grid_tpl').innerHTML;
+  layui.laytpl(grid_tpl).render(data, function(html) {
+    $("#gridBody").html(html);
+  });
+}
+
+function oprFormatLink(val, row) {
+  var html = "";
+  if (row.Status == 1) {
+    html += "<button class='layui-btn layui-btn-small layui-btn-danger' onclick='CloseForward(" + row.Id + ");'><i class='layui-icon'></i></button>";
+  } else {
+    html += "<button class='layui-btn layui-btn-small layui-btn-normal' onclick='OpenForward(" + row.Id+");'><i class='layui-icon'></i></button>";
+  }
+  html += "<button class='layui-btn layui-btn-small' onclick='editForward(" + row.Id + ");'><i class='layui-icon'></i></button>";
+  return html;
+}
+
+function fmtAddr(val) {
+  if (val == "") {
+    return "监听所有地址";
+  } else {
+    return val;
+  }
+}
+
+function fmtFType(val) {
+    var html = "";
+    switch (val) {
+        case 0:
+            html = "<font color='blue'>透明转发</font>";
+            break;
+        case 1:
+            html = "<font color='orange'>AES加密通信</font>";
+            break;
+        default:
+            html = "<font color='gray'>其它:" + val + "</font>";
+            break;
+    }
+    return html;
+}
+function fmtEnd(val) {
+    var html = "";
+    switch (val) {
+        case 0:
+            html = "<font color='blue'>OVS端</font>";
+            break;
+        case 1:
+            html = "<font color='orange'>控制器端</font>";
+            break;
+        default:
+            html = "<font color='gray'>其它:" + val + "</font>";
+            break;
+    }
+    return html;
+}
+function fmtTls(val) {
+    var html = "";
+    switch (val) {
+        case 0:
+            html = "<font color='blue'>否</font>";
+            break;
+        case 1:
+            html = "<font color='orange'>是</font>";
+            break;
+    }
+    return html;
+}
+function fmtStatus(val) {
+  var html = "";
+  switch (val) {
+    case 0:
+      html = "<font color='red'>停止</font>";
+      break;
+    case 1:
+      html = "<font color='green'>转发中</font>";
+      break;
+    default:
+      html = "<font color='gray'>其它:" + val + "</font>";
+      break;
+  }
+  return html;
+}
+
+function addForward() {
+  $.get('/u/AddForward', {
+    rnd: Math.random()
+  }, function(html) {
+    layer.open({
+      type: 1, //page层
+      area: ['400px', '450px'],
+      title: '添加网络转发端口',
+      shade: 0.6, //遮罩透明度
+      moveType: 1, //拖拽风格，0是默认，1是传统拖动
+      shift: -1, //0-6的动画形式，-1不开启
+      maxmin: false,
+      content: html,
+      btn: ['保存配置', '取消'],
+      yes: function(index, layero) {
+        submitForm(index);
+      },
+      btn2: function(index) {
+        layer.close(index);
+      },
+      cancel: function(index) {
+        layer.close(index);
+      }
+    });
+  });
+}
+
+function editForward(id) {
+  $.get('/u/EditForward', {
+    rnd: Math.random(),
+    id: id
+  }, function(html) {
+    layer.open({
+      type: 1, //page层
+      area: ['600px', '550px'],
+      title: '编辑数据转发详情',
+      shade: 0.6, //遮罩透明度
+      moveType: 1, //拖拽风格，0是默认，1是传统拖动
+      shift: -1, //0-6的动画形式，-1不开启
+      maxmin: false,
+      content: html,
+      btn: ['保存配置', '取消'],
+      yes: function(index, layero) {
+        submitForm(index);
+      },
+      btn2: function(index) {
+        layer.close(index);
+      },
+      cancel: function(index) {
+        layer.close(index);
+      }
+    });
+  });
+}
+
+function delForward() {
+  var selectedItems = getChkValues("id");
+  if (selectedItems.length == 0) {
+    layer.alert("没有勾选要批量操作的数据.", {
+      icon: 3,
+      title: "警告信息"
+    });
+    return;
+  }
+  var ids = selectedItems.join(',');
+  layer.confirm("确定批量删除勾选的数据吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/DelForward", {
+      rnd: Math.random(),
+      ids: ids
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+
+function refreshGrid() {
+  query(1);
+}
+
+function OpenForward(id,) {
+  layer.confirm("确定启动该转发吗？",{
+  // layer.confirm(key,{
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/OpenForward", {
+      rnd: Math.random(),
+      id: id
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+
+function CloseForward(id) {
+  layer.confirm("确定停止该转发吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/CloseForward", {
+      rnd: Math.random(),
+      id: id
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+</script>

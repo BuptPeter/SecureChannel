@@ -5,11 +5,9 @@ import (
 	"port-forward/models"
 	"port-forward/services"
 	"port-forward/utils"
-
 	"fmt"
-
-	//"github.com/astaxie/beego"
 	"github.com/astaxie/beego/logs"
+	"strconv"
 )
 
 type ForwardCtrl struct {
@@ -21,7 +19,53 @@ func (c *ForwardCtrl) ForwardList() {
 
 	c.TplName = "ucenter/forwardList.html"
 }
+// @router /u/Kerberos [get]
+func (c *ForwardCtrl) Kerberos() {
 
+	c.TplName = "ucenter/kerberos.html"
+}
+// @router /u/ClientKDC [get,post]
+func (c *ForwardCtrl) ClientKDC() {
+	id, _ := c.GetInt("id")
+	logs.Info("ClientKDC 传来的ID：",id)
+	entity := services.SysDataS.GetPortForwardById(id)
+	resultChan := make(chan models.ResultData)
+	id_ovs:=entity.Addr
+	id_con:=entity.TargetAddr
+	kdc:=entity.Kdc
+	go services.ClietnKDC(id  ,id_ovs ,id_con ,kdc , resultChan )
+	c.Data["json"] = <-resultChan
+	c.ServeJSON()
+}
+
+
+// @router /u/ClientController [get,post]
+func (c *ForwardCtrl) ClientController() {
+	id, _ := c.GetInt("id")
+	logs.Info("ClientController 传来的ID：",id)
+	entity := services.SysDataS.GetPortForwardById(id)
+	resultChan := make(chan models.ResultData)
+	con_ip:=entity.TargetAddr
+	port:=strconv.Itoa(entity.TargetPort)
+	T :=entity.Con_ticket
+	skey:=entity.Key
+	go services.ClientCon(id  ,con_ip ,port ,T ,skey , resultChan )
+	c.Data["json"] = <-resultChan
+	c.ServeJSON()
+}
+
+// @router /u/StartService [get,post]
+func (c *ForwardCtrl) StartService() {
+	id, _ := c.GetInt("id")
+	logs.Info("StartService 传来的ID：",id)
+	entity := services.SysDataS.GetPortForwardById(id)
+	resultChan := make(chan models.ResultData)
+	port:=strconv.Itoa(entity.Port)
+
+	go services.StartService(id ,port , resultChan )
+	c.Data["json"] = <-resultChan
+	c.ServeJSON()
+}
 // @router /u/ForwardList/json [post]
 func (c *ForwardCtrl) ForwardListJson() {
 	pageParam := new(models.PageParam)
@@ -46,6 +90,7 @@ func (c *ForwardCtrl) ForwardListJson() {
 	c.ServeJSON()
 
 }
+
 
 // @router /u/AddForward [get,post]
 func (c *ForwardCtrl) AddForward() {
@@ -119,7 +164,7 @@ func (c *ForwardCtrl) SaveForward() {
 	fType, _ := c.GetInt("fType")
 	Tls, _ := c.GetInt("Tls")
 	End, _ := c.GetInt("End")
-
+	Kdc:= c.GetString("KDC", "")
 	if utils.IsEmpty(name) {
 		//
 		c.Data["json"] = models.ResultData{Code: 1, Msg: "名称 不能为空"}
@@ -174,6 +219,7 @@ func (c *ForwardCtrl) SaveForward() {
 	entity.FType = fType
 	entity.Tls = Tls
 	entity.End = End
+	entity.Kdc =Kdc
 
 	err := services.SysDataS.SavePortForward(entity)
 	if err == nil {
@@ -189,6 +235,7 @@ func (c *ForwardCtrl) SaveForward() {
 // @router /u/OpenForward [get,post]
 func (c *ForwardCtrl) OpenForward() {
 	id, _ := c.GetInt("id")
+	logs.Info("传来的ID:",id)
 	entity := services.SysDataS.GetPortForwardById(id)
 	resultChan := make(chan models.ResultData)
 
@@ -205,6 +252,7 @@ func (c *ForwardCtrl) OpenForward() {
 	c.ServeJSON()
 
 }
+
 
 // @router /u/CloseForward [get,post]
 func (c *ForwardCtrl) CloseForward() {
@@ -223,12 +271,6 @@ func (c *ForwardCtrl) CloseForward() {
 	c.ServeJSON()
 }
 
-// @router /u/ApiDoc [get]
-func (c *ForwardCtrl) ApiDoc() {
-
-	c.TplName = "ucenter/apiDoc.html"
-
-}
 
 // @router /u/NetAgent [get]
 func (c *ForwardCtrl) NetAgent() {
@@ -236,6 +278,16 @@ func (c *ForwardCtrl) NetAgent() {
 	c.TplName = "ucenter/netAgent.html"
 }
 
+// @router /u/OvsHash [get]
+func (c *ForwardCtrl) OvsHash() {
+
+	c.TplName = "ucenter/ovsHash.html"
+}
+// @router /u/OvsCheck [get]
+func (c *ForwardCtrl) OvsCheck() {
+
+	c.TplName = "ucenter/ovsCheck.html"
+}
 // @router /u/OpenMagicService [post]
 func (c *ForwardCtrl) OpenMagicService() {
 

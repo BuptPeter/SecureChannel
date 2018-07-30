@@ -14,9 +14,6 @@ type DefaultCtrl struct {
 func (c *DefaultCtrl) Default() {
 
 	c.Ctx.Redirect(302, "/login")
-
-	//c.Data["currentTime"] = time.Now()
-	//c.TplName = "index.html"
 }
 
 // @router /apiAuthFail [get]

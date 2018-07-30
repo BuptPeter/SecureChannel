@@ -1,0 +1,211 @@
+<div class="layui-tab layui-tab-card">
+  <div class="layui-tab-content" style="height: auto;">
+    <div class="layui-tab-item layui-show">
+<blockquote class="layui-elem-quote">
+    ovs-hash 状态：
+    <font color="red" id="f1">未启动  </font>
+    <span id="magicStatus"> <button class='layui-btn layui-btn-small' id="state-but" onclick='OpenFlowModService();'><font style="white-space:nowrap" id="f2">启动ovs-hash服务</font></button></span>
+</blockquote>
+      <div class="layui-form">
+        <table class="layui-table">
+          <colgroup>
+            <col width="10">
+            <col width="200">
+            <col width="1800">
+            <col width="2">
+              <col width="240">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Flow_Mod信息</th>
+              <th>Flows信息</th>
+              <th>Flows摘要值</th>
+              <th>操作时间</th>
+            </tr>
+          </thead>
+          <tbody id="gridBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="pagination"></div>
+    </div>
+  </div>
+</div>
+<script id="grid_tpl" type="text/html">
+  {Start{# if(d.Data === null || d.Data.length === 0){ }End}
+  <tr>
+    <td colspan="10">
+      未有Flow_Mod消息下发记录，请开启ovs-hash服务。
+    </td>
+  </tr>
+  {Start{# } else { }End} {Start{# layui.each(d.Data, function(index, item){ }End}
+  <tr>
+    <td>{Start{ item.Id }End}</td>
+    <td>{Start{ item.Flow_mod }End}</td>
+      <td>{Start{ item.Flow }End}</td>
+    <td>{Start{ fmtMac(item.Flow_mac)}End}</td>
+      <td>{Start{ fmtTime(item.Flow_time) }End}</td>
+  </tr>
+  {Start{# }); }End} {Start{# } }End}
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+  layui.use(["jquery", "layer", "form", "element", "laytpl", "laypage"], function() {
+    var $ = layui.jquery,
+      layer = layui.layer,
+      form = layui.form(),
+      laytpl = layui.laytpl,
+      laypage = layui.laypage;
+    //全选
+    form.on('checkbox(allChoose)', function(data) {
+      var child = $(data.elem).parents('table').find('tbody input[type="checkbox"]');
+      child.each(function(index, item) {
+        item.checked = data.elem.checked;
+      });
+      form.render('checkbox');
+    });
+    layui.laytpl.config({
+      open: "{Start{",
+      close: "}End}"
+    });
+    query(1);
+  });
+});
+
+function fmtTime(val) {
+    var html = "";
+    html = "<font>" + val.slice(0,10) +' '+ val.slice(11,19) +"</font>";
+    return html;
+}
+function fmtMac(val) {
+    var html = "";
+    html = "<font color='green'>" + val.slice(0,31) +' '+ val.slice(32,64) +"</font>";
+
+    return html;
+}
+function fmtState(val) {
+    var html = "";
+    if (val=="0"){
+         html = "<font color='green'>" + "校检通过" +"</font>";
+    } else {
+         html = "<font color='red'>" + "校检异常" +"</font>";
+    }
+    return html;
+}
+function query(pIndex) {
+  // var columnFiled = $("#columnFiled").val();
+  // var keyWord = $("#keyWord").val();
+  $.post("FlowModList/json", {
+    pIndex: pIndex,
+    pSize: 10
+  }, function(json) {
+    if (json.Code == 0) { //成功
+      renderGrid(json.Data);
+      if(json.State==true){
+          document.getElementById("f1").color='green';
+          document.getElementById("f1").innerHTML="已启动   ";
+          document.getElementById("state-but").onclick='StopFlowModService();';
+          // document.getElementById("state-but").color='red';
+          document.getElementById("f2").innerHTML="停止ovs-hash服务";
+          }
+      var totalPages = json.Data.Pages;
+      var totalRows = json.Data.TotalRows;
+
+      //显示分页
+      layui.laypage({
+        cont: 'pagination', //容器
+        pages: totalPages, //通过后台拿到的总页数
+        total: totalRows,
+        groups: 5, //连续分页数
+        skin: "#51b921", //控制分页皮肤。目前支持：molv、yahei、flow 除此之外，还支持16进制颜色值，如:skin:'#c00'
+        curr: pIndex || 1, //当前页
+        skip: true,
+        jump: function(obj, first) { //触发分页后的回调
+          if (!first) { //点击跳页触发函数自身，并传递当前页：obj.curr
+            query(obj.curr);
+          }
+        }
+      });
+      // layui.form().render('checkbox');
+    } else { //失败
+      layui.layer.alert("失败：" + json.Msg, {
+        icon: 2
+      });
+    }
+  }, 'json');
+}
+
+function renderGrid(data) {
+  var grid_tpl = document.getElementById('grid_tpl').innerHTML;
+  layui.laytpl(grid_tpl).render(data, function(html) {
+    $("#gridBody").html(html);
+  });
+}
+function renderGridC(data) {
+  var grid_tplC = document.getElementById('grid_tplC').innerHTML;
+  layui.laytpl(grid_tplC).render(data, function(html) {
+    $("#gridBodyC").html(html);
+  });
+}
+
+function OpenFlowModService() {
+  layer.confirm("确定启动ovs-hash服务吗？",{
+  // layer.confirm(key,{
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/OpenFlowMod", {
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        query(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        query(1);
+      }
+    }, 'json');
+  });
+}
+
+function StopFlowModService() {
+  layer.confirm("确定停止ovs-hash服务吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+      layer.alert("操作失败.", {
+          icon: 2
+        });
+  },'json');
+}
+
+function OpenFlowCheckService() {
+  layer.confirm("确定启动ovs-check服务吗？",{
+  // layer.confirm(key,{
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+    $.post("/u/OpenFlowCheck", {
+    }, function(json) {
+      if (json.Code == 0) { //成功
+        layer.msg("执行成功.");
+        queryC(1);
+      } else { //失败
+        layer.alert(json.Msg, {
+          icon: 2
+        });
+        queryC(1);
+      }
+    }, 'json');
+  });
+}
+
+function StopFlowCheckService() {
+  layer.confirm("确定停止ovs-check服务吗？", {
+    btn: ['确定', '取消'] //按钮
+  }, function(index, layero) {
+      layer.alert("操作失败.", {
+          icon: 2
+        });
+  },'json');
+}
+</script>

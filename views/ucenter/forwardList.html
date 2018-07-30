@@ -49,7 +49,7 @@
     </div>
     <div class="layui-tab-item">
       <pre class="layui-code">
-自适应的SDN网元数据保护系统 V1.2
+自适应的SDN网元数据保护系统 V3.0-Build-20180728
 
 用于SDN场景下，Open vSwitch与控制器之间的加密数据通信和Open vSwitch本地数据防篡改。
         2018-01-26  v1.0
@@ -66,6 +66,18 @@
           1.添加工作位置选项
           2.删除协议及多分发
           3.Fix Bugs
+
+        2018-05-21 v2.0:
+          1.修改转发方式为数据流加解密
+          2.速度大幅提升
+
+        2018-05-21 v2.1:
+          1.加入Kerberos身份认证和密钥分发
+
+        2018-07-21 v3.0:
+          1.加入ovs-hash服务，记录流表下发
+          2.加入ovs-check服务，定时校检HMAC值
+
             </pre>
     </div>
   </div>
@@ -167,7 +179,7 @@ function oprFormatLink(val, row) {
   if (row.Status == 1) {
     html += "<button class='layui-btn layui-btn-small layui-btn-danger' onclick='CloseForward(" + row.Id + ");'><i class='layui-icon'></i></button>";
   } else {
-    html += "<button class='layui-btn layui-btn-small layui-btn-normal' onclick='OpenForward(" + row.Id + ");'><i class='layui-icon'></i></button>";
+    html += "<button class='layui-btn layui-btn-small layui-btn-normal' onclick='OpenForward(" + row.Id+");'><i class='layui-icon'></i></button>";
   }
   html += "<button class='layui-btn layui-btn-small' onclick='editForward(" + row.Id + ");'><i class='layui-icon'></i></button>";
   return html;
@@ -328,8 +340,9 @@ function refreshGrid() {
   query(1);
 }
 
-function OpenForward(id) {
-  layer.confirm("确定启动该转发吗？", {
+function OpenForward(id,) {
+  layer.confirm("确定启动该转发吗？",{
+  // layer.confirm(key,{
     btn: ['确定', '取消'] //按钮
   }, function(index, layero) {
     $.post("/u/OpenForward", {

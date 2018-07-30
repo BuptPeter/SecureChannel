@@ -195,6 +195,55 @@ func (_self *SysDataService) GetPortForwardList(query *models.PortForward, pageI
 
 }
 
+func (_self *SysDataService) GetFlowModList(query *models.FlowData, pageIndex int64, pageSize int64) models.PageData {
+
+	var entites []*models.FlowData
+	entity := new(models.FlowData)
+	qs := OrmerS.QueryTable(entity)
+
+	totals, _ := qs.Count()
+	pages := math.Ceil(float64(totals) / float64(pageSize))
+
+	if pageIndex <= 0 {
+		pageIndex = 1
+	}
+	offset := pageIndex - 1
+	num, err := qs.Limit(pageSize, pageSize*offset).OrderBy("-Id").All(&entites)
+	if err != nil {
+		logs.Error("GetPortForwardList ", err)
+	} else {
+		logs.Debug("GetPortForwardList rows ", num)
+	}
+
+	return models.PageData{PIndex: pageIndex, PSize: pageSize, TotalRows: totals, Pages: int64(pages), Data: entites}
+
+}
+
+func (_self *SysDataService) GetFlowCheckList(query *models.FlowCheckData, pageIndex int64, pageSize int64) models.PageData {
+
+	var entites []*models.FlowCheckData
+	entity := new(models.FlowCheckData)
+	qs := OrmerS.QueryTable(entity)
+
+	totals, _ := qs.Count()
+	pages := math.Ceil(float64(totals) / float64(pageSize))
+
+	if pageIndex <= 0 {
+		pageIndex = 1
+	}
+	offset := pageIndex - 1
+	num, err := qs.Limit(pageSize, pageSize*offset).OrderBy("-Id").All(&entites)
+	if err != nil {
+		logs.Error("GetFlowCheckList ", err)
+	} else {
+		logs.Debug("GetFlowCheckList rows ", num)
+	}
+	logs.Info("GetFlowCheckList success,data:",entites)
+	return models.PageData{PIndex: pageIndex, PSize: pageSize, TotalRows: totals, Pages: int64(pages), Data: entites}
+
+}
+
+
 func (_self *SysDataService) SavePortForward(entity *models.PortForward) error {
 
 	if entity.Id > 0 {
@@ -218,6 +267,15 @@ func (_self *SysDataService) SavePortForward(entity *models.PortForward) error {
 		update.FType = entity.FType
 		update.Tls = entity.Tls
 		update.End = entity.End
+
+		update.Key_state  = entity.Key_state
+		update.Key_id   = entity.Key_id
+		update.Key_time  = entity.Key_time
+		update.Kdc  = entity.Kdc
+		update.Ovs_ticket  = entity.Ovs_ticket
+		//update.Kdc  = entity.Kdc
+		update.Con_ticket  = entity.Con_ticket
+
 
 		_, err1 := OrmerS.Update(update)
 		return err1

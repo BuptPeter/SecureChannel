@@ -9,6 +9,7 @@ type PageParam struct {
 	Sort string
 	// ASC 或 DESC
 	Direction string
+	stats int64
 }
 
 func (this *PageParam) PageSize() int {

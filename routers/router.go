@@ -14,6 +14,8 @@ func init() {
 	beego.Include(&controllers.UCenterCtrl{})
 	beego.Include(&controllers.ForwardCtrl{})
 
+	beego.Include(&controllers.FlowModCtrl{})
+
 	api_ns := beego.NewNamespace("/api",
 		beego.NSNamespace("/v1",
 			beego.NSInclude(

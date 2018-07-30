@@ -7,8 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  <title>{{config "String" "app.cname" "SDN网元数据保护系统"}} - V1.0</title>
+  <title>{{config "String" "app.cname" "SDN网元数据保护系统"}} - V3.0</title>
 
+  <link href="/static/layui/css/layui.css" rel="stylesheet" media="all"/>
   <link href="/static/layui/css/layui.css" rel="stylesheet" media="all"/>
   <script src="/static/layui/lay/dest/layui.all.js"></script>
 
@@ -32,6 +33,7 @@
   <legend>SDN网元数据保护系统 系统登录</legend>
 </fieldset>
 <form class="layui-form  layui-form-pane" action="" method="POST">
+    <div class="layadmin-user-login-box layadmin-user-login-body layui-form">
   <div class="layui-form-item">
     <label class="layui-form-label">用户名</label>
     <div class="layui-input-block">
@@ -43,6 +45,7 @@
     <div class="layui-input-block">
       <input type="password" name="passWord" lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
     </div>
+  </div>
   </div>
 
   <div class="layui-form-item">

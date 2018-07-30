@@ -14,6 +14,7 @@ var (
 	SysDataS   = new(SysDataService)
 	ForwardS   = new(ForwardService)
 	NetCommonS = new(common.NetCommon)
+	FlowModS = new(OvsHashService)
 )
 
 func init() {

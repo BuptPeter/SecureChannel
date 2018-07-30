@@ -1,33 +1,34 @@
 package services
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
+	"fmt"
+	"github.com/astaxie/beego/logs"
 	"io"
+	"io/ioutil"
+	"log"
 	"net"
 	"port-forward/models"
 	"port-forward/utils"
 	"strings"
 	"sync"
 	"time"
-	"fmt"
-	"crypto/tls"
-	"crypto/x509"
-	"errors"
-	"github.com/astaxie/beego/logs"
-	"io/ioutil"
-	"log"
 )
 
 type ForwardService struct {
 }
 
 var (
-	portMap            = make(map[string]net.Listener)
-	portMapLock        = new(sync.Mutex)
-	clientMap          = make(map[string]net.Conn)
-	clientMapLock      = new(sync.Mutex)
-	sessionId          = 0
-	idLock             = new(sync.Mutex)
-
+	portMap       = make(map[string]net.Listener)
+	portMapLock   = new(sync.Mutex)
+	clientMap     = make(map[string]net.Conn)
+	clientMapLock = new(sync.Mutex)
+	sessionId     = 0
+	idLock        = new(sync.Mutex)
 )
 
 func init() {
@@ -88,7 +89,6 @@ func (_self *ForwardService) UnRegistryClient(sourcePort string) {
 
 }
 
-
 func (_self *ForwardService) GetKeyByEntity(entity *models.PortForward) string {
 
 	fromAddr := fmt.Sprint(entity.Addr, ":", entity.Port)
@@ -121,7 +121,7 @@ func (_self *ForwardService) StartListener(portForward *models.PortForward) {
 //开启端口转发
 //建立普通socket连接
 func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForward, result chan models.ResultData) {
-
+	skey:=portForward.Key
 	sourcePort := fmt.Sprint(portForward.Addr, ":", portForward.Port)
 	targetPort := fmt.Sprint(portForward.TargetAddr, ":", portForward.TargetPort)
 	fType := portForward.FType
@@ -153,7 +153,7 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 	_self.RegistryPort(key, localListener)
 
 	result <- *resultData
-
+	//runtime.GOMAXPROCS(512)
 	go func() {
 		for {
 			logs.Debug("Ready to Accept ...")
@@ -195,14 +195,16 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 			if fType == 1 { //AES加密通信
 				if End == 0 { //AES加密通信（OVS端）
 					go func() {
-						_, err = _self.EncryptCopy(targetConn, sourceConn)
+						//_, err = _self.EncryptCopy("OVS端", targetConn, sourceConn)
+						_, err = _self.EncryptCopyNew(skey,"OVS端", targetConn, sourceConn)
 						if err != nil {
 							logs.Error("客户端来源数据转发到目标端口异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
 					}()
 					go func() {
-						_, err = _self.DecryptCopy(sourceConn, targetConn)
+						//_, err = _self.DecryptCopy("OVS端", sourceConn, targetConn)
+						_, err = _self.DecryptCopyNew(skey,"OVS端", sourceConn, targetConn)
 						if err != nil {
 							logs.Error("客户端来源数据转发到目标端口异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
@@ -211,14 +213,16 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 				}
 				if End == 1 { //AES加密通信（RYU端）
 					go func() {
-						_, err = _self.DecryptCopy(targetConn, sourceConn)
+						//_, err = _self.DecryptCopy("RYU端", targetConn, sourceConn)
+						_, err = _self.DecryptCopyNew(skey,"RYU端", targetConn, sourceConn)
 						if err != nil {
 							logs.Error("客户端来源数据转发到目标端口异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
 					}()
 					go func() {
-						_, err = _self.EncryptCopy(sourceConn, targetConn)
+						//_, err = _self.EncryptCopy("RYU端", sourceConn, targetConn)
+						_, err = _self.EncryptCopyNew(skey,"RYU端", sourceConn, targetConn)
 						if err != nil {
 							logs.Error("客户端来源数据转发到目标端口异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
@@ -234,12 +238,11 @@ func (_self *ForwardService) StartPortToPortForward(portForward *models.PortForw
 
 }
 
-//
 // sourcePort 源地址和端口，例如：0.0.0.0:8700，本程序会新建立监听
 // targetPort 数据转发给哪个端口，例如：192.168.1.100:3306
 // 传输过程使用TLS方式
 func (_self *ForwardService) StartTlsPortToPortForward(portForward *models.PortForward, result chan models.ResultData) {
-
+	skey:=portForward.Key
 	sourcePort := fmt.Sprint(portForward.Addr, ":", portForward.Port)
 	targetPort := fmt.Sprint(portForward.TargetAddr, ":", portForward.TargetPort)
 	fType := portForward.FType
@@ -309,7 +312,7 @@ func (_self *ForwardService) StartTlsPortToPortForward(portForward *models.PortF
 	_self.RegistryPort(key, localListener)
 
 	result <- *resultData
-
+	//runtime.GOMAXPROCS(512)
 	go func() {
 		for {
 			logs.Debug("Ready to Accept ...")
@@ -361,58 +364,62 @@ func (_self *ForwardService) StartTlsPortToPortForward(portForward *models.PortF
 					return
 				}
 			}
-				if fType == 0 { //透明转发
+			if fType == 0 { //透明转发
+				go func() {
+					_, err = _self.Copy(targetConn, sourceConn)
+					if err != nil {
+						logs.Error("客户端来源数据转发到目标端口异常：", err)
+						_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
+					}
+				}()
+				go func() {
+					_, err = _self.Copy(sourceConn, targetConn)
+					if err != nil {
+						logs.Error("目标端口返回响应数据异常：", err)
+						_self.UnRegistryPort(key)
+					}
+				}()
+			}
+
+			if fType == 1 { //加密通信
+				if End == 0 { //加密通信（OVS端）
 					go func() {
-						_, err = _self.Copy(targetConn, sourceConn)
+						//_, err = _self.EncryptCopy("OVS端", targetConn, sourceConn)
+						_, err = _self.EncryptCopyNew(skey,"OVS端", targetConn, sourceConn)
 						if err != nil {
-							logs.Error("客户端来源数据转发到目标端口异常：", err)
+							logs.Error("[OVS端：] OVS来源数据加密转发异常：", err)
 							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
 					}()
 					go func() {
-						_, err = _self.Copy(sourceConn, targetConn)
+						//_, err = _self.DecryptCopy("OVS端", sourceConn, targetConn)
+						_, err = _self.DecryptCopyNew(skey,"OVS端", sourceConn, targetConn)
 						if err != nil {
-							logs.Error("目标端口返回响应数据异常：", err)
-							_self.UnRegistryPort(key)
+							logs.Error("[OVS端：]南向通信数据解密转发异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
 						}
 					}()
 				}
+				if End == 1 { //加密通信（RYU端）
+					go func() {
+						//_, err = _self.DecryptCopy("RYU端", targetConn, sourceConn)
+						_, err = _self.DecryptCopyNew(skey,"RYU端", targetConn, sourceConn)
+						if err != nil {
+							logs.Error("[控制器端： ]南向通信数据解密转发异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
+						}
+					}()
 
-				if fType == 1 { //加密通信
-					if End == 0 { //加密通信（OVS端）
-						go func() {
-							_, err = _self.EncryptCopy(targetConn, sourceConn)
-							if err != nil {
-								logs.Error("客户端来源数据转发到目标端口异常：", err)
-								_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-							}
-						}()
-						go func() {
-							_, err = _self.DecryptCopy(sourceConn, targetConn)
-							if err != nil {
-								logs.Error("客户端来源数据转发到目标端口异常：", err)
-								_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-							}
-						}()
-					}
-					if End == 1 { //加密通信（RYU端）
-						go func() {
-							_, err = _self.DecryptCopy(targetConn, sourceConn)
-							if err != nil {
-								logs.Error("客户端来源数据转发到目标端口异常：", err)
-								_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-							}
-						}()
-
-						go func() {
-							_, err = _self.EncryptCopy(sourceConn, targetConn)
-							if err != nil {
-								logs.Error("客户端来源数据转发到目标端口异常：", err)
-								_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
-							}
-						}()
-					}
+					go func() {
+						//_, err = _self.EncryptCopy("RYU端", sourceConn, targetConn)
+						_, err = _self.EncryptCopyNew(skey,"RYU端", sourceConn, targetConn)
+						if err != nil {
+							logs.Error("[控制器端： ]控制器数据加密转发异常：", err)
+							_self.UnRegistryClient(fmt.Sprint(sourcePort, "_", fType, "_", sourceConn.RemoteAddr().String()))
+						}
+					}()
 				}
+			}
 		}
 	}()
 
@@ -461,64 +468,139 @@ func (_self *ForwardService) ClosePortForward(sourcePort string, targetPort stri
 func (_self *ForwardService) Copy(dst io.Writer, src io.Reader) (written int64, err error) {
 	return io.Copy(dst, src)
 }
-func (_self *ForwardService) EncryptCopy(dst io.Writer, src io.Reader) (written int64, err error) {
+func (_self *ForwardService) EncryptCopy(s string, dst io.Writer, src io.Reader) (written int64, err error) {
 	temp_reader := make([]byte, 32*1024)
 
 	//var start_time,stop_time time.Time
 	for {
 		nr, er := src.Read(temp_reader)
+		if er != nil {
+			err = er
+			logs.Info("读取时出错。")
+			break
+		}
 		if nr > 0 {
-			//logs.Info("接收明文消息：", temp_reader[:n])
-			//start_time := time.Now()
-			nw, ew := dst.Write(utils.GetCipherText(temp_reader[0:nr], "astaxie12798akljzmknm.ahkjkljl;k"))
-			//stop_time := time.Now()
-			//logs.Info("转发密文消息 OVS -> SecChan ：", temp_reader[:n])
-			//logs.Info("消息长度变化：", nr, "->", nw, " ，加密耗时：", stop_time.UnixNano()-start_time.UnixNano())
-
-			if ew != nil {
-				err = ew
+			if nr == 32*1024 {
+				err = errors.New("buffer overflow ")
 				break
 			}
-			if nr != nw {
+			logs.Info(s, "接收明文消息（加密转发）：", nr, temp_reader[0:nr])
+			//start_time := time.Now()
+			nw, ew := dst.Write(utils.GetCipherText(nr, temp_reader[0:nr], []byte("astaxie12798akljzmknm.ahkjkljl;k")))
+			//stop_time := time.Now()
+			logs.Info("转发密文消息 ", s, " -> SecChan ：", temp_reader[0:nr])
+			logs.Info("消息长度变化：", nr, "->", nw)
+			//logs.Info("消息长度变化：", nr, "->", nw, " ，加密耗时：", stop_time.UnixNano()-start_time.UnixNano())
+			//nw-=32//减去多写的hmac（32字节）
+			if ew != nil {
+				err = ew
+				logs.Info("写入时出错:", err)
+				break
+			}
+			if nr != nw-32 {
 				err = errors.New("short write")
 				break
 			}
 		}
-		if er != nil {
-			err = er
-			break
-		}
+
 	}
+	temp_reader = nil
 	return written, err
 }
 
-func (_self *ForwardService) DecryptCopy(dst io.Writer, src io.Reader) (written int64, err error) {
+func (_self *ForwardService) DecryptCopy(s string, dst io.Writer, src io.Reader) (written int64, err error) {
 	temp_reader := make([]byte, 32*1024)
 
 	//var start_time,stop_time time.Time
 	for {
 		nr, er := src.Read(temp_reader)
-		if nr > 0 {
-			//logs.Info("接收明文消息：", temp_reader[:n])
-			//start_time := time.Now()
-			nw, ew := dst.Write(utils.GetPlainText(temp_reader[0:nr], "astaxie12798akljzmknm.ahkjkljl;k"))
-			//stop_time := time.Now()
-			//logs.Info("转发密文消息 OVS -> SecChan ：", temp_reader[:n])
-			//logs.Info("消息长度变化：", nr, "->", nw, " ，解密耗时：", stop_time.UnixNano()-start_time.UnixNano())
-
-			if ew != nil {
-				err = ew
-				break
-			}
-			if nr != nw {
-				err = errors.New("short write")
-				break
-			}
-		}
 		if er != nil {
 			err = er
 			break
 		}
+		if nr > 0 {
+			if nr == 32*1024 {
+				err = errors.New("buffer overflow ")
+				break
+			}
+			logs.Info(s, "接收明文消息(解密转发)：", nr, temp_reader[:nr])
+			//start_time := time.Now()
+			if !(utils.CheckMAC(temp_reader[0:nr-32], temp_reader[nr-32:nr], []byte("astaxie12798akljzmknm.ahkjkljl;k"))) {
+				logs.Info("消息认证失败", temp_reader)
+				continue
+			}
+			nw, ew := dst.Write(utils.GetPlainText(nr-32, temp_reader[0:nr-32], []byte("astaxie12798akljzmknm.ahkjkljl;k")))
+			//stop_time := time.Now()
+			//logs.Info("转发密文消息 SecChan ->",s, utils.GetPlainText(nr-32,temp_reader[0:nr-32], []byte("astaxie12798akljzmknm.ahkjkljl;k")))
+			logs.Info("转发密文消息 SecChan ->", s, temp_reader[0:nw])
+			logs.Info("消息长度变化：", nr, "->", nw)
+			//logs.Info("消息长度变化：", nr, "->", nw, " ，解密耗时：", stop_time.UnixNano()-start_time.UnixNano())
+			//nw+=32
+			if ew != nil {
+				err = ew
+				logs.Info("写入时出错:", err)
+				break
+			}
+			if nr-32 != nw {
+				err = errors.New("short write")
+				break
+			}
+		}
+
 	}
+	temp_reader = nil
 	return written, err
+}
+func (_self *ForwardService) EncryptCopyNew(skey string,s string, dst io.Writer, src io.Reader) (written int64,err error) {
+	//从src得到明文，加密写入dst
+	logs.Info("使用会话密钥skey:",skey)
+	key := []byte(skey)
+	var commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+	var er error
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		er = err
+	}
+
+	stream := cipher.NewOFB(block, commonIV)
+
+	writer := &cipher.StreamWriter{S: stream, W: dst}
+	// Copy the input file to the output file, encrypting as we go.
+	if _, err := io.Copy(writer, src); err != nil {
+		er = err
+	}
+	// Note that this example is simplistic in that it omits any
+	// authentication of the encrypted data. It you were actually to use
+	// StreamReader in this manner, an attacker could flip arbitrary bits in
+	// the decrypted result.
+	return written,er
+
+}
+
+func (_self *ForwardService) DecryptCopyNew(skey string,s string, dst io.Writer, src io.Reader) (written int64,err error) {
+	//从src的密文，解密写入dst
+	logs.Info("使用会话密钥skey:",skey)
+	key := []byte(skey)
+	var commonIV = []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+	var er error
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		er = err
+	}
+	// If the key is unique for each ciphertext, then it's ok to use a zero
+	// IV.
+	//var iv [aes.BlockSize]byte
+	stream := cipher.NewOFB(block, commonIV)
+
+	reader := &cipher.StreamReader{S: stream, R: src}
+	// Copy the input file to the output file, decrypting as we go.
+	if _, err := io.Copy(dst, reader); err != nil {
+		er = err
+	}
+	// Note that this example is simplistic in that it omits any
+	// authentication of the encrypted data. It you were actually to use
+	// StreamReader in this manner, an attacker could flip arbitrary bits in
+	// the output.
+	return written,er
+
 }

@@ -26,6 +26,7 @@ func (c *LoginCtrl) Login() {
 
 	c.TplName = "login.html"
 
+
 }
 
 // @router /login [post]
